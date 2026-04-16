@@ -7,6 +7,20 @@
 - Podman (for container builds)
 - `gh` CLI (for releases)
 
+## Contributing
+
+Fork the repo and open a pull request. All changes should go through PR review — do not push directly to `main`.
+
+Use semantic commit messages:
+
+```
+feat: add get_payload_upgrades tool
+fix: correct parameter name for payload test failures
+docs: update variant filtering examples
+chore: bump mcp-go to v0.49.0
+test: add coverage for release resolution edge cases
+```
+
 ## Build & Test
 
 ```bash

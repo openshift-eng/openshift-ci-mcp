@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Commit Messages
+
+Use semantic commit prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`. Keep the subject line concise and lowercase after the prefix.
+
 ## Build & Test Commands
 
 ```bash

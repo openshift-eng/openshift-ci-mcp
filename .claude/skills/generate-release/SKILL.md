@@ -1,10 +1,10 @@
 ---
 name: generate-release
-description: Build, tag, and publish a new release with container image and GitHub release
+description: Build, tag, and publish a new release with cross-compiled binaries and GitHub release
 disable-model-invocation: true
 ---
 
-Create a versioned release of openshift-ci-mcp. This pushes artifacts to quay.io and GitHub — confirm the version with the user before proceeding.
+Create a versioned release of openshift-ci-mcp. Pushing the tag triggers a container build on Quay.io automatically. Confirm the version with the user before proceeding.
 
 ## Arguments
 
@@ -41,15 +41,7 @@ make lint
 
 Stop if either fails.
 
-### 3. Build and push container image
-
-```bash
-VERSION=<version-without-v-prefix> make push
-```
-
-This builds the image and pushes both `:VERSION` and `:latest` tags to quay.io.
-
-### 4. Cross-compile binaries
+### 3. Cross-compile binaries
 
 ```bash
 make build-all
@@ -57,7 +49,7 @@ make build-all
 
 This builds for linux/amd64, linux/arm64, darwin/amd64, and darwin/arm64. Binaries are written to `bin/` as `openshift-ci-mcp-<os>-<arch>`.
 
-### 5. Generate release notes
+### 4. Generate release notes
 
 Generate release notes from the git log since the previous tag (or all commits if first release):
 
@@ -76,7 +68,7 @@ Organize the notes into sections based on commit prefixes:
 
 Include a summary line at the top describing the release. Keep it concise.
 
-### 6. Create git tag and GitHub release
+### 5. Create git tag and GitHub release
 
 ```bash
 git tag -a <version> -m "Release <version>"
@@ -88,11 +80,11 @@ gh release create <version> \
   bin/openshift-ci-mcp-*
 ```
 
-This attaches all cross-compiled binaries as release assets.
+This attaches all cross-compiled binaries as release assets. Pushing the tag also triggers the Quay.io container build.
 
-### 7. Report
+### 6. Report
 
 Print a summary:
 - Version released
-- Container image URL and tags
+- Container image: `quay.io/rh_ee_jeroche/openshift-ci-mcp:<version>` (built automatically by Quay)
 - GitHub release URL (from `gh release create` output)

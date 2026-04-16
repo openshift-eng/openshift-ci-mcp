@@ -49,11 +49,13 @@ VERSION=<version-without-v-prefix> make push
 
 This builds the image and pushes both `:VERSION` and `:latest` tags to quay.io.
 
-### 4. Build the binary
+### 4. Cross-compile binaries
 
 ```bash
-VERSION=<version-without-v-prefix> make build
+make build-all
 ```
+
+This builds for linux/amd64, linux/arm64, darwin/amd64, and darwin/arm64. Binaries are written to `bin/` as `openshift-ci-mcp-<os>-<arch>`.
 
 ### 5. Generate release notes
 
@@ -83,10 +85,10 @@ git push origin <version>
 gh release create <version> \
   --title "<version>" \
   --notes "<release-notes>" \
-  bin/openshift-ci-mcp
+  bin/openshift-ci-mcp-*
 ```
 
-This attaches the binary as a release asset.
+This attaches all cross-compiled binaries as release assets.
 
 ### 7. Report
 

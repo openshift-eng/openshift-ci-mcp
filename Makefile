@@ -3,10 +3,19 @@ USER := rh_ee_jeroche
 IMAGE ?= quay.io/$(USER)/$(BINARY)
 VERSION ?= 0.0.0-dev
 
-.PHONY: build test test-integration lint smoke smoke-container image push clean
+PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
+
+.PHONY: build build-all test test-integration lint smoke smoke-container image push clean
 
 build:
 	go build -o bin/$(BINARY) ./cmd/$(BINARY)
+
+build-all:
+	@for platform in $(PLATFORMS); do \
+		os=$${platform%%/*}; arch=$${platform##*/}; \
+		echo "Building $$os/$$arch..."; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -o bin/$(BINARY)-$$os-$$arch ./cmd/$(BINARY); \
+	done
 
 test:
 	go test ./...

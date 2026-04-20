@@ -13,6 +13,9 @@ import (
 func RegisterSearchTools(s *server.MCPServer, search client.SearchCI) {
 	s.AddTool(mcp.NewTool("search_ci_logs",
 		mcp.WithDescription("Search build logs and JUnit failures across OpenShift CI. Searches recent test results, job logs, and associated Jira issues."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("query", mcp.Required(), mcp.Description("Search string — test name, error message, or job name pattern")),
 		mcp.WithString("max_age", mcp.Description("Max age of results (e.g. '7d', '24h'). Default: server default.")),
 		mcp.WithString("type", mcp.Description("Search type: 'all', 'bug', 'junit'. Default: 'all'.")),

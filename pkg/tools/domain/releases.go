@@ -15,6 +15,9 @@ func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(
 		mcp.NewTool("get_releases",
 			mcp.WithDescription("List available OpenShift releases with GA dates and development start dates"),
+			mcp.WithReadOnlyHintAnnotation(true),
+			mcp.WithDestructiveHintAnnotation(false),
+			mcp.WithIdempotentHintAnnotation(true),
 		),
 		GetReleasesHandler(sippy),
 	)
@@ -22,6 +25,9 @@ func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(
 		mcp.NewTool("get_release_health",
 			mcp.WithDescription("Overall health of a release — install/upgrade/infrastructure success rates, variant summary, and payload acceptance statistics"),
+			mcp.WithReadOnlyHintAnnotation(true),
+			mcp.WithDestructiveHintAnnotation(false),
+			mcp.WithIdempotentHintAnnotation(true),
 			mcp.WithString("release",
 				mcp.Description("Release version (e.g. '4.18'). Defaults to current development release if omitted."),
 			),

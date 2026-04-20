@@ -14,6 +14,9 @@ import (
 func RegisterPayloadTools(s *server.MCPServer, sippy client.Sippy, rc client.ReleaseController) {
 	s.AddTool(mcp.NewTool("get_payload_status",
 		mcp.WithDescription("Recent payload acceptance/rejection status from the Release Controller. Shows payload tags with their phase (Accepted/Rejected/Ready)."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Required(), mcp.Description("Release version (e.g. '4.18')")),
 		mcp.WithString("arch", mcp.Description("Architecture (default: amd64)"), mcp.DefaultString("amd64")),
 		mcp.WithString("stream", mcp.Description("Release stream: 'nightly' or 'ci' (default: nightly)"), mcp.DefaultString("nightly")),
@@ -21,6 +24,9 @@ func RegisterPayloadTools(s *server.MCPServer, sippy client.Sippy, rc client.Rel
 
 	s.AddTool(mcp.NewTool("get_payload_diff",
 		mcp.WithDescription("PRs that changed between two payloads — useful for identifying what went into a rejected payload"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("from_tag", mcp.Description("Source payload tag (if omitted, uses previous payload automatically)")),
 		mcp.WithString("to_tag", mcp.Required(), mcp.Description("Target payload tag")),
@@ -28,6 +34,9 @@ func RegisterPayloadTools(s *server.MCPServer, sippy client.Sippy, rc client.Rel
 
 	s.AddTool(mcp.NewTool("get_payload_test_failures",
 		mcp.WithDescription("Test failures across payload runs"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("payload_tag", mcp.Description("Specific payload tag to check")),
 	), GetPayloadTestFailuresHandler(sippy))

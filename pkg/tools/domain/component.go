@@ -15,12 +15,18 @@ import (
 func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(mcp.NewTool("get_component_readiness",
 		mcp.WithDescription("Component readiness report — the binding release gate. Shows statistical analysis comparing current release behavior against the previous stable release."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("view", mcp.Description("Predefined view name (default: server default). Use get_variants or check Sippy for available views.")),
 	), GetComponentReadinessHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_regressions",
 		mcp.WithDescription("Active regressions from Component Readiness — tests that are performing significantly worse than the previous release"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("view", mcp.Description("Component Readiness view name")),
 		mcp.WithString("component", mcp.Description("Filter by component name")),
@@ -28,6 +34,9 @@ func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy) {
 
 	s.AddTool(mcp.NewTool("get_regression_detail",
 		mcp.WithDescription("Details of a specific regression including linked triages and Jira bugs"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("regression_id", mcp.Required(), mcp.Description("Regression ID")),
 	), GetRegressionDetailHandler(sippy))
 }

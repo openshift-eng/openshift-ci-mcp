@@ -16,6 +16,9 @@ import (
 func RegisterPullRequestTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(mcp.NewTool("get_pull_request_impact",
 		mcp.WithDescription("Test failures associated with a specific pull request. Note: this endpoint is rate-limited to 20 req/hour."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("org", mcp.Required(), mcp.Description("GitHub org (e.g. 'openshift')")),
 		mcp.WithString("repo", mcp.Required(), mcp.Description("GitHub repo (e.g. 'kubernetes')")),
 		mcp.WithString("pr_number", mcp.Required(), mcp.Description("Pull request number")),
@@ -25,6 +28,9 @@ func RegisterPullRequestTools(s *server.MCPServer, sippy client.Sippy) {
 
 	s.AddTool(mcp.NewTool("get_pull_requests",
 		mcp.WithDescription("PR reports with filtering by org, repo, and release"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to 'Presubmits'.")),
 		mcp.WithString("org", mcp.Description("Filter by GitHub org")),
 		mcp.WithString("repo", mcp.Description("Filter by GitHub repo")),

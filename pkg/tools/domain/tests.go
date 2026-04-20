@@ -15,6 +15,9 @@ import (
 func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(mcp.NewTool("get_test_report",
 		mcp.WithDescription("Get test pass/fail/flake rates with filtering by name, component, and variant dimensions"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("test_name", mcp.Description("Filter tests by name substring")),
 		mcp.WithString("component", mcp.Description("Filter by Jira component")),
@@ -28,12 +31,18 @@ func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
 
 	s.AddTool(mcp.NewTool("get_test_details",
 		mcp.WithDescription("Detailed test analysis — pass rates broken down by variant and by job"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("test_name", mcp.Required(), mcp.Description("Exact test name")),
 	), GetTestDetailsHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_recent_test_failures",
 		mcp.WithDescription("Tests that have recently started failing — useful for detecting new regressions"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("period", mcp.Description("Time window as a Go duration (e.g. '168h' for 7 days, '48h' for 2 days). Default: 168h")),
 	), GetRecentTestFailuresHandler(sippy))

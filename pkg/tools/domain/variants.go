@@ -14,6 +14,9 @@ func RegisterVariantTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(
 		mcp.NewTool("get_variants",
 			mcp.WithDescription("List all variant dimensions and their possible values. Use this to discover valid values for arch, topology, platform, network, and other variant filters."),
+			mcp.WithReadOnlyHintAnnotation(true),
+			mcp.WithDestructiveHintAnnotation(false),
+			mcp.WithIdempotentHintAnnotation(true),
 		),
 		GetVariantsHandler(sippy),
 	)

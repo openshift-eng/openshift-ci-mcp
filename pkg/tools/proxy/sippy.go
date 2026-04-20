@@ -13,6 +13,9 @@ import (
 func RegisterSippyProxy(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(mcp.NewTool("sippy_api",
 		mcp.WithDescription("Raw passthrough to any Sippy API endpoint. Returns unmodified upstream response. See https://sippy.dptools.openshift.org/api for available endpoints."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("path", mcp.Required(), mcp.Description("API path (e.g. '/api/jobs')")),
 	), SippyAPIHandler(sippy))
 }

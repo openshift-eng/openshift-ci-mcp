@@ -13,6 +13,9 @@ import (
 func RegisterSearchCIProxy(s *server.MCPServer, search client.SearchCI) {
 	s.AddTool(mcp.NewTool("search_ci_api",
 		mcp.WithDescription("Raw passthrough to Search.CI API. Returns unmodified upstream response."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithString("query", mcp.Required(), mcp.Description("Search query string")),
 	), SearchCIAPIHandler(search))
 }

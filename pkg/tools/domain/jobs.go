@@ -16,6 +16,9 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(
 		mcp.NewTool("get_job_report",
 			mcp.WithDescription("Get job pass rates with filtering by name, variant dimensions, and pass rate thresholds. Returns paginated results."),
+			mcp.WithReadOnlyHintAnnotation(true),
+			mcp.WithDestructiveHintAnnotation(false),
+			mcp.WithIdempotentHintAnnotation(true),
 			mcp.WithString("release", mcp.Description("Release version (e.g. '4.18'). Defaults to current dev release.")),
 			mcp.WithString("job_name", mcp.Description("Filter jobs by name substring")),
 			mcp.WithString("arch", mcp.Description("Filter by architecture: amd64, arm64, ppc64le, s390x, multi")),
@@ -33,6 +36,9 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(
 		mcp.NewTool("get_job_runs",
 			mcp.WithDescription("Get recent runs of a specific job with results and risk analysis"),
+			mcp.WithReadOnlyHintAnnotation(true),
+			mcp.WithDestructiveHintAnnotation(false),
+			mcp.WithIdempotentHintAnnotation(true),
 			mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 			mcp.WithString("job_name", mcp.Required(), mcp.Description("Exact job name")),
 			mcp.WithNumber("limit", mcp.Description("Max results (default 10)"), mcp.DefaultNumber(10)),
@@ -43,6 +49,9 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(
 		mcp.NewTool("get_job_run_summary",
 			mcp.WithDescription("Detailed summary of a single job run — test failures, cluster operator status"),
+			mcp.WithReadOnlyHintAnnotation(true),
+			mcp.WithDestructiveHintAnnotation(false),
+			mcp.WithIdempotentHintAnnotation(true),
 			mcp.WithString("prow_job_run_id", mcp.Required(), mcp.Description("Prow job run ID")),
 		),
 		GetJobRunSummaryHandler(sippy),

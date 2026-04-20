@@ -3,13 +3,23 @@
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "if echo \"$TOOL_INPUT\" | grep -q '\\.go'; then cd /home/jeroche/claude_workdir/openshift-ci-mcp && go vet ./... 2>&1 | head -20; fi"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -q '\\.go'; then cd /home/jeroche/claude_workdir/openshift-ci-mcp && go vet ./... 2>&1 | head -20; fi"
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": "if echo \"$TOOL_INPUT\" | grep -qE '(go\\.sum|bin/)'; then echo 'BLOCK: Do not edit generated files (go.sum, bin/)'; exit 1; fi"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qE '(go\\.sum|bin/)'; then echo 'BLOCK: Do not edit generated files (go.sum, bin/)'; exit 1; fi"
+          }
+        ]
       }
     ]
   }

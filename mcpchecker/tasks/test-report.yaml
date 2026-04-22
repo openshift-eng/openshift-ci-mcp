@@ -1,0 +1,15 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: test-report
+  difficulty: medium
+  labels:
+    suite: tests
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      Get the test report for the current in-development OpenShift release.
+      Filter to tests running on the single-node (single) topology.
+      Show me the tests with the lowest pass rates.

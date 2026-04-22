@@ -12,7 +12,7 @@ import (
 
 func RegisterSippyProxy(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(mcp.NewTool("sippy_api",
-		mcp.WithDescription("Raw passthrough to any Sippy API endpoint. Returns unmodified upstream response. See https://sippy.dptools.openshift.org/api for available endpoints."),
+		mcp.WithDescription("Low-level passthrough to any Sippy API endpoint (advanced use only). Prefer domain-specific tools (get_job_runs, get_job_report, get_test_report, get_pull_requests, etc.) which handle filtering, pagination, and release resolution automatically."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),

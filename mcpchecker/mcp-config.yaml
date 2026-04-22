@@ -1,0 +1,6 @@
+mcpServers:
+  openshift-ci:
+    type: stdio
+    command: ./bin/openshift-ci-mcp
+    args: []
+    enableAllTools: true

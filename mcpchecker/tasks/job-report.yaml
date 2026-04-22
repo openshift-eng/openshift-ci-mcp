@@ -1,0 +1,15 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: job-report
+  difficulty: medium
+  labels:
+    suite: jobs
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      Get the CI job report for the current in-development OpenShift release.
+      Focus on jobs running on the aws platform with sdn network type.
+      Summarize the worst-performing jobs by pass rate.

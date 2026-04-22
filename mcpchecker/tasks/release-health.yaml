@@ -1,0 +1,14 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: release-health
+  difficulty: easy
+  labels:
+    suite: releases
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      Get the health summary for the latest in-development OpenShift release.
+      Report the overall pass rate and any notable trends.

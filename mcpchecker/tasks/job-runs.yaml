@@ -1,0 +1,14 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: job-runs
+  difficulty: medium
+  labels:
+    suite: jobs
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      Find recent runs for the job "periodic-ci-openshift-release-master-nightly-4.18-e2e-aws-sdn-upgrade".
+      Show me the last 5 runs with their pass/fail status and timestamps.

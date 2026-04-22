@@ -1,0 +1,15 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: payload-status
+  difficulty: medium
+  labels:
+    suite: payloads
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      Get the latest payload acceptance status for the current in-development
+      OpenShift release on amd64 architecture. Tell me which payload tags
+      have been accepted and which were rejected.

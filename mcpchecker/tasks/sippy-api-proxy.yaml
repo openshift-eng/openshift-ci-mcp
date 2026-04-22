@@ -1,0 +1,14 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: sippy-api-proxy
+  difficulty: medium
+  labels:
+    suite: proxy
+    category: advanced
+
+spec:
+  prompt:
+    inline: |
+      Use the sippy_api tool to directly query the /api/releases endpoint
+      and return the raw response. Tell me how many releases are listed.

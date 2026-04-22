@@ -1,0 +1,14 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: list-releases
+  difficulty: easy
+  labels:
+    suite: releases
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      List all available OpenShift releases. Tell me which ones have GA dates
+      and which are still in development.

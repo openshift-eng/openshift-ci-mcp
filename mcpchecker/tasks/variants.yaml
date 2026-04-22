@@ -1,0 +1,15 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: variants
+  difficulty: easy
+  labels:
+    suite: discovery
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      List all available CI job variants for the current in-development
+      OpenShift release. What platforms, architectures, networks, and
+      topologies are available?

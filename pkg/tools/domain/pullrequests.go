@@ -15,7 +15,7 @@ import (
 
 func RegisterPullRequestTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(mcp.NewTool("get_pull_request_impact",
-		mcp.WithDescription("Test failures associated with a specific pull request. Note: this endpoint is rate-limited to 20 req/hour."),
+		mcp.WithDescription("Get detailed test failure data for a SPECIFIC pull request (requires a known PR number). To find PR numbers first, use get_pull_requests. Rate-limited to 20 req/hour."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
@@ -27,7 +27,7 @@ func RegisterPullRequestTools(s *server.MCPServer, sippy client.Sippy) {
 	), GetPullRequestImpactHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_pull_requests",
-		mcp.WithDescription("PR reports with filtering by org, repo, and release"),
+		mcp.WithDescription("List pull requests with titles, status, and summary data. Use this to discover and browse PRs. Supports filtering by org, repo, and release. For detailed CI test impact of a specific PR, use get_pull_request_impact after finding the PR number here."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),

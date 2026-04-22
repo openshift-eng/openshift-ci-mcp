@@ -14,7 +14,7 @@ import (
 
 func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(mcp.NewTool("get_component_readiness",
-		mcp.WithDescription("Component readiness report — the binding release gate. Shows statistical analysis comparing current release behavior against the previous stable release."),
+		mcp.WithDescription("Component readiness report — the binding release gate. Shows statistical analysis comparing current release behavior against the previous stable release. This endpoint can be slow (30+ seconds). If view is omitted, the server auto-discovers the first available view, which adds an extra API call."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),

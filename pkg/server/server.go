@@ -23,7 +23,7 @@ func DefaultConfig() Config {
 		SippyURL:             "https://sippy.dptools.openshift.org",
 		ReleaseControllerURL: "https://amd64.ocp.releases.ci.openshift.org",
 		SearchCIURL:          "https://search.ci.openshift.org",
-		Timeout:              30 * time.Second,
+		Timeout:              60 * time.Second,
 	}
 }
 

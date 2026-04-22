@@ -1,0 +1,123 @@
+kind: Eval
+metadata:
+  name: "openshift-ci-mcp"
+
+config:
+  agent:
+    type: "builtin.claude-code"
+
+  mcpConfigFile: mcp-config.yaml
+
+  llmJudge:
+    ref:
+      type: "builtin.claude-code"
+
+  defaultTaskLimits:
+    timeout: "5m"
+    cleanupTimeout: "1m"
+
+  taskSets:
+    # Release tools
+    - path: tasks/list-releases.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_releases
+        minToolCalls: 1
+        maxToolCalls: 3
+
+    - path: tasks/release-health.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_release_health
+        minToolCalls: 1
+        maxToolCalls: 5
+
+    # Job tools
+    - path: tasks/job-report.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_job_report
+        minToolCalls: 1
+        maxToolCalls: 7
+
+    - path: tasks/job-runs.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_job_runs
+        minToolCalls: 1
+        maxToolCalls: 7
+
+    # Test tools
+    - path: tasks/test-report.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_test_report
+        minToolCalls: 1
+        maxToolCalls: 5
+
+    - path: tasks/recent-test-failures.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_recent_test_failures
+        minToolCalls: 1
+        maxToolCalls: 7
+
+    # Component readiness
+    - path: tasks/component-readiness.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_component_readiness
+        minToolCalls: 1
+        maxToolCalls: 5
+
+    # Payload tools
+    - path: tasks/payload-status.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_payload_status
+        minToolCalls: 1
+        maxToolCalls: 5
+
+    # Variant discovery
+    - path: tasks/variants.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_variants
+        minToolCalls: 1
+        maxToolCalls: 3
+
+    # Pull request tools
+    - path: tasks/pull-requests.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: get_pull_requests
+        minToolCalls: 1
+        maxToolCalls: 7
+
+    # Multi-tool workflow
+    - path: tasks/investigate-release.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            toolPattern: "get_.*"
+        minToolCalls: 2
+        maxToolCalls: 10
+
+    # Proxy passthrough
+    - path: tasks/sippy-api-proxy.yaml
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: sippy_api
+        minToolCalls: 1
+        maxToolCalls: 3

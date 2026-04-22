@@ -1,0 +1,15 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: recent-test-failures
+  difficulty: medium
+  labels:
+    suite: tests
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      Find the most recent test failures across OpenShift CI for the current
+      in-development release. Report the test names and how frequently they
+      are failing.

@@ -1,0 +1,19 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: investigate-release
+  difficulty: hard
+  labels:
+    suite: workflow
+    category: multi-tool
+
+spec:
+  limits:
+    timeout: "10m"
+
+  prompt:
+    inline: |
+      Investigate the health of the current in-development OpenShift release.
+      First find out which release is in development, then check its overall
+      health, and finally look at the worst-performing jobs on the aws platform.
+      Give me a summary of the release status with specific data points.

@@ -1,0 +1,14 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: pull-requests
+  difficulty: medium
+  labels:
+    suite: prs
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      Get recent pull requests from the openshift/origin repository that have
+      been merged. Show me their titles, authors, and merge status.

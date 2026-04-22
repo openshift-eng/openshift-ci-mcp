@@ -1,0 +1,14 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: component-readiness
+  difficulty: medium
+  labels:
+    suite: components
+    category: basic
+
+spec:
+  prompt:
+    inline: |
+      Check the component readiness status for the current in-development
+      OpenShift release. Which components have regressions?

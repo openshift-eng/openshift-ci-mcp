@@ -35,7 +35,7 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 
 	s.AddTool(
 		mcp.NewTool("get_job_runs",
-			mcp.WithDescription("Get recent runs of a specific job with results and risk analysis"),
+			mcp.WithDescription("Get recent runs of a specific CI job with pass/fail results, timings, and risk analysis. This is the primary tool for fetching job run history — do not use sippy_api, search_ci_api, or search_ci_logs for this purpose. Release version can be inferred from job names (e.g. '4.18' from 'nightly-4.18-e2e-aws')."),
 			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDestructiveHintAnnotation(false),
 			mcp.WithIdempotentHintAnnotation(true),

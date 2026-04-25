@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
 )
 
 func TestSearchCIClient_Search(t *testing.T) {

@@ -7,9 +7,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
-	"github.com/jeroche/openshift-ci-mcp/pkg/filter"
-	"github.com/jeroche/openshift-ci-mcp/pkg/tools"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/filter"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
 func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {

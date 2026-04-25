@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/filter"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/filter"
 )
 
 func TestBuild_SingleArch(t *testing.T) {

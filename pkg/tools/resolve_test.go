@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/tools"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
 type mockSippy struct {

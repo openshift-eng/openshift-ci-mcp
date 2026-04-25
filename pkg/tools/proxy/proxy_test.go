@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/jeroche/openshift-ci-mcp/pkg/tools/proxy"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools/proxy"
 )
 
 type mockClient struct {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
 )
 
 func ToolError(err error) (*mcp.CallToolResult, error) {

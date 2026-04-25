@@ -1,9 +1,8 @@
 # openshift-ci-mcp
 
-[![Docker Repository on Quay](https://quay.io/repository/rh_ee_jeroche/openshift-ci-mcp/status "Docker Repository on Quay")](https://quay.io/repository/rh_ee_jeroche/openshift-ci-mcp)
-![Go](https://img.shields.io/github/go-mod/go-version/jeff-roche/openshift-ci-mcp)
-![License](https://img.shields.io/github/license/jeff-roche/openshift-ci-mcp)
-![Release](https://img.shields.io/github/v/release/jeff-roche/openshift-ci-mcp)
+![Go](https://img.shields.io/github/go-mod/go-version/openshift-eng/openshift-ci-mcp)
+![License](https://img.shields.io/github/license/openshift-eng/openshift-ci-mcp)
+![Release](https://img.shields.io/github/v/release/openshift-eng/openshift-ci-mcp)
 
 MCP server providing read-only access to OpenShift CI data. Query Sippy, Release Controller, and Search.CI from any MCP-compatible client.
 
@@ -51,7 +50,7 @@ Raw passthrough to upstream APIs for advanced use cases.
 bin/openshift-ci-mcp
 
 # Run in container
-podman run -i --rm quay.io/rh_ee_jeroche/openshift-ci-mcp
+podman run -i --rm quay.io/rh-edge-enablement/openshift-ci-mcp
 ```
 
 ### HTTP/SSE
@@ -60,7 +59,7 @@ podman run -i --rm quay.io/rh_ee_jeroche/openshift-ci-mcp
 bin/openshift-ci-mcp --transport http --port 8080
 
 # Or in container
-podman run -p 8080:8080 quay.io/rh_ee_jeroche/openshift-ci-mcp --transport http --port 8080
+podman run -p 8080:8080 quay.io/rh-edge-enablement/openshift-ci-mcp --transport http --port 8080
 ```
 
 ### Claude Desktop
@@ -84,7 +83,7 @@ Container:
   "mcpServers": {
     "openshift-ci": {
       "command": "podman",
-      "args": ["run", "-i", "--rm", "quay.io/rh_ee_jeroche/openshift-ci-mcp"]
+      "args": ["run", "-i", "--rm", "quay.io/rh-edge-enablement/openshift-ci-mcp"]
     }
   }
 }

@@ -1,6 +1,6 @@
 BINARY := openshift-ci-mcp
-USER := rh_ee_jeroche
-IMAGE ?= quay.io/$(USER)/$(BINARY)
+ORG := rh-edge-enablement
+IMAGE ?= quay.io/$(ORG)/$(BINARY)
 VERSION ?= 0.0.0-dev
 
 PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64

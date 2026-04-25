@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
 )
 
 type releasesResponse struct {

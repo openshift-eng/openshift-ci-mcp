@@ -8,8 +8,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
-	"github.com/jeroche/openshift-ci-mcp/pkg/tools"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
 func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy) {
@@ -51,7 +51,9 @@ func GetComponentReadinessHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if view == "" {
 			viewsData, err := sippy.Get(ctx, "/api/component_readiness/views", map[string]string{"release": release})
 			if err == nil {
-				var views []struct{ Name string `json:"name"` }
+				var views []struct {
+					Name string `json:"name"`
+				}
 				if json.Unmarshal(viewsData, &views) == nil && len(views) > 0 {
 					view = views[0].Name
 				}

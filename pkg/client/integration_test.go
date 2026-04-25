@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
 )
 
 const integrationRelease = "4.18"

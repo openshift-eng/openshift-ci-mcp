@@ -9,7 +9,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/server"
 
-	mcpserver "github.com/jeroche/openshift-ci-mcp/pkg/server"
+	mcpserver "github.com/openshift-eng/openshift-ci-mcp/pkg/server"
 )
 
 func main() {

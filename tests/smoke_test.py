@@ -6,7 +6,7 @@ Requires network access to Sippy, Release Controller, and Search.CI.
 
 Usage:
     python tests/smoke_test.py --binary bin/openshift-ci-mcp
-    python tests/smoke_test.py --container quay.io/rh_ee_jeroche/openshift-ci-mcp:latest
+    python tests/smoke_test.py --container quay.io/rh-edge-enablement/openshift-ci-mcp:latest
     python tests/smoke_test.py --binary bin/openshift-ci-mcp --tools get_releases get_variants
 """
 

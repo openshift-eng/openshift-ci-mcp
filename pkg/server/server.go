@@ -6,9 +6,9 @@ import (
 
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
-	"github.com/jeroche/openshift-ci-mcp/pkg/tools/domain"
-	"github.com/jeroche/openshift-ci-mcp/pkg/tools/proxy"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools/domain"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools/proxy"
 )
 
 type Config struct {

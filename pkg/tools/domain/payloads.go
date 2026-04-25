@@ -7,8 +7,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
-	"github.com/jeroche/openshift-ci-mcp/pkg/tools"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
 func RegisterPayloadTools(s *server.MCPServer, sippy client.Sippy, rc client.ReleaseController) {

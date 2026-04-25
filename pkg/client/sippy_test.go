@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jeroche/openshift-ci-mcp/pkg/client"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/client"
 )
 
 func TestSippyClient_Get_Success(t *testing.T) {

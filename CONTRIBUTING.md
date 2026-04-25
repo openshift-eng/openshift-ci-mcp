@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Go 1.24+
+- Go 1.25+
 - Python 3 (for smoke tests)
 - Podman (for container builds)
 - `gh` CLI (for releases)
@@ -13,7 +13,7 @@ Fork the repo and open a pull request. All changes should go through PR review �
 
 Use semantic commit messages:
 
-```
+```text
 feat: add get_payload_upgrades tool
 fix: correct parameter name for payload test failures
 docs: update variant filtering examples
@@ -64,7 +64,7 @@ bin/openshift-ci-mcp --transport http --port 8080
 ### Environment Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| -------- | ------- | ----------- |
 | `SIPPY_URL` | `https://sippy.dptools.openshift.org` | Sippy API base URL |
 | `RELEASE_CONTROLLER_URL` | `https://amd64.ocp.releases.ci.openshift.org` | Release Controller base URL |
 | `SEARCH_CI_URL` | `https://search.ci.openshift.org` | Search.CI base URL |
@@ -72,7 +72,7 @@ bin/openshift-ci-mcp --transport http --port 8080
 ### CLI Flags
 
 | Flag | Default | Description |
-|------|---------|-------------|
+| ---- | ------- | ----------- |
 | `--transport` | `stdio` | `stdio` or `http` |
 | `--port` | `8080` | HTTP port (with `--transport http`) |
 | `--timeout` | `30s` | Upstream request timeout |
@@ -115,7 +115,7 @@ The smoke test suite (`tests/smoke_test.py`) starts the MCP server over stdio, c
 python3 tests/smoke_test.py --binary bin/openshift-ci-mcp
 
 # Against container
-python3 tests/smoke_test.py --container quay.io/rh_ee_jeroche/openshift-ci-mcp:latest
+python3 tests/smoke_test.py --container quay.io/{{org_name}}/openshift-ci-mcp:latest
 
 # Specific tools only
 python3 tests/smoke_test.py --binary bin/openshift-ci-mcp --tools get_releases get_variants
@@ -126,7 +126,7 @@ python3 tests/smoke_test.py --binary bin/openshift-ci-mcp --release 4.19 --timeo
 
 ## Project Layout
 
-```
+```text
 cmd/openshift-ci-mcp/       Entry point, CLI flags, transport setup
 pkg/
   server/                    MCP server factory, wires all tools
@@ -146,13 +146,16 @@ tests/
 The project includes Claude Code automations in `.claude/`:
 
 **Skills** (invoke with `/skill-name`):
+
 - `/smoke-test` — Run smoke tests
 - `/add-tool` — Scaffold a new MCP tool
 - `/generate-release` — Version, build, tag, and publish a release
 
 **Agents:**
+
 - `sippy-api-explorer` — Probe a Sippy API endpoint to discover its contract
 
 **Hooks:**
+
 - `PostToolUse` — Runs `go vet` after editing `.go` files
 - `PreToolUse` — Blocks edits to `go.sum` and `bin/`

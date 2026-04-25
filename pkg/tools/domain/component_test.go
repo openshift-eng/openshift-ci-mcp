@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/jeroche/openshift-ci-mcp/pkg/tools/domain"
+	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools/domain"
 )
 
 func TestGetComponentReadiness(t *testing.T) {

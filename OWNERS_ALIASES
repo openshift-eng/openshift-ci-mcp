@@ -1,0 +1,43 @@
+aliases:
+  edge-reviewers:
+    - brandisher
+    - suleymanakbas91
+    - ggiguash
+    - jerpeter1
+    - eggfoobar
+    - jeff-roche
+    - qJkee
+    - jaypoulz
+    - fonta-rh
+    - pmtk
+    - fracappa
+    - vimauro
+    - pacevedom
+    - mmakwana30
+    - dhensel-rh
+    - lucaconsalvi  
+    - kasturinarra
+    - eslutsky
+    - copejon
+    - agullon
+  edge-approvers:
+    - brandisher
+    - suleymanakbas91
+    - ggiguash
+    - jerpeter1
+    - eggfoobar
+    - jeff-roche
+    - qJkee
+    - jaypoulz
+    - fonta-rh
+    - pmtk
+    - fracappa
+    - vimauro
+    - pacevedom
+    - mmakwana30
+    - dhensel-rh
+    - lucaconsalvi  
+    - kasturinarra
+    - eslutsky
+    - copejon
+    - agullon

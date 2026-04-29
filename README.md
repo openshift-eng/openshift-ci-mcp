@@ -95,6 +95,28 @@ Container:
 }
 ```
 
+`go run` (convenient when podman is not available, e.g. running Claude in a pod):
+
+```json
+{
+  "mcpServers": {
+    "openshift-ci": {
+      "command": "go",
+      "args": [
+        "run",
+        "github.com/openshift-eng/openshift-ci-mcp/cmd/openshift-ci-mcp@latest"
+      ]
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add openshift-ci go -- run github.com/openshift-eng/openshift-ci-mcp/cmd/openshift-ci-mcp@latest
+```
+
 ## Configuration
 
 ### CLI Flags

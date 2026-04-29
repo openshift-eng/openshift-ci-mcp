@@ -70,22 +70,6 @@ podman run -p 8080:8080 quay.io/rh-edge-enablement/openshift-ci-mcp --transport 
 
 ### Claude Desktop
 
-`go run` (no build required — recommended):
-
-```json
-{
-  "mcpServers": {
-    "openshift-ci": {
-      "command": "go",
-      "args": [
-        "run",
-        "github.com/openshift-eng/openshift-ci-mcp/cmd/openshift-ci-mcp@latest"
-      ]
-    }
-  }
-}
-```
-
 Local binary:
 
 ```json
@@ -106,6 +90,22 @@ Container:
     "openshift-ci": {
       "command": "podman",
       "args": ["run", "-i", "--rm", "quay.io/rh-edge-enablement/openshift-ci-mcp"]
+    }
+  }
+}
+```
+
+`go run` (convenient when podman is not available, e.g. running Claude in a pod):
+
+```json
+{
+  "mcpServers": {
+    "openshift-ci": {
+      "command": "go",
+      "args": [
+        "run",
+        "github.com/openshift-eng/openshift-ci-mcp/cmd/openshift-ci-mcp@latest"
+      ]
     }
   }
 }

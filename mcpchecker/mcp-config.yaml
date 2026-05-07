@@ -2,5 +2,5 @@ mcpServers:
   openshift-ci:
     type: stdio
     command: ./bin/openshift-ci-mcp
-    args: []
+    args: ["--enable-proxy-tools"]
     enableAllTools: true

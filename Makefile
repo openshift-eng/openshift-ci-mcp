@@ -5,7 +5,7 @@ VERSION ?= 0.0.0-dev
 
 PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 
-.PHONY: build build-all test test-integration lint smoke smoke-container image push clean generate
+.PHONY: build build-all test test-integration lint smoke smoke-container image push clean generate check
 
 build:
 	go build -o bin/$(BINARY) ./cmd/$(BINARY)
@@ -41,6 +41,9 @@ smoke-container:
 
 generate:
 	go generate ./pkg/server/...
+
+check: build
+	mcpchecker check mcpchecker/eval.yaml
 
 clean:
 	rm -rf bin/

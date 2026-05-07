@@ -30,6 +30,7 @@ make test-integration   # Integration tests (requires network, hits live APIs)
 make lint               # go vet
 make smoke              # Build + smoke test against binary
 make smoke-container    # Smoke test against container image
+make check              # Build + run mcpchecker eval suite
 ```
 
 Run a single test:
@@ -68,6 +69,7 @@ bin/openshift-ci-mcp --transport http --port 8080
 | `SIPPY_URL` | `https://sippy.dptools.openshift.org` | Sippy API base URL |
 | `RELEASE_CONTROLLER_URL` | `https://amd64.ocp.releases.ci.openshift.org` | Release Controller base URL |
 | `SEARCH_CI_URL` | `https://search.ci.openshift.org` | Search.CI base URL |
+| `ENABLE_PROXY_TOOLS` | `false` | Set to `true` to register proxy tools |
 
 ### CLI Flags
 
@@ -76,6 +78,7 @@ bin/openshift-ci-mcp --transport http --port 8080
 | `--transport` | `stdio` | `stdio` or `http` |
 | `--port` | `8080` | HTTP port (with `--transport http`) |
 | `--timeout` | `30s` | Upstream request timeout |
+| `--enable-proxy-tools` | `false` | Register low-level proxy tools |
 
 ## Adding a New Tool
 
@@ -108,7 +111,7 @@ bin/openshift-ci-mcp --transport http --port 8080
 
 ## Smoke Tests
 
-The smoke test suite (`tests/smoke_test.py`) starts the MCP server over stdio, calls all 21 tools against live upstream APIs, and validates responses. Tests with dependencies chain automatically (e.g., `get_job_report` provides the job name for `get_job_runs`).
+The smoke test suite (`tests/smoke_test.py`) starts the MCP server over stdio, calls tools against live upstream APIs, and validates responses. Tests with dependencies chain automatically (e.g., `get_job_report` provides the job name for `get_job_runs`). Proxy tool tests are skipped when the server is started without `--enable-proxy-tools`.
 
 ```bash
 # Against binary

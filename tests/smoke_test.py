@@ -151,11 +151,13 @@ class SmokeTests:
         def t():
             tools = self.client.list_tools()
             names = {t["name"] for t in tools}
-            assert len(tools) == 21, f"expected 21 tools, got {len(tools)}"
-            for n in ["get_releases", "get_job_report", "sippy_api", "search_ci_logs"]:
+            self.ctx["tool_names"] = names
+            assert len(tools) >= 18, f"expected at least 18 tools, got {len(tools)}"
+            assert len(tools) <= 21, f"expected at most 21 tools, got {len(tools)}"
+            for n in ["get_releases", "get_job_report", "search_ci_logs"]:
                 assert n in names, f"missing tool: {n}"
 
-        self._test("list_tools (21 registered)", t)
+        self._test("list_tools", t)
 
     def _test_releases(self):
         self._section("Releases")
@@ -361,12 +363,14 @@ class SmokeTests:
 
     def _test_proxy(self):
         self._section("Proxy")
+        proxy_available = "sippy_api" in self.ctx.get("tool_names", set())
+        skip = None if proxy_available else "proxy tools not enabled (use --enable-proxy-tools)"
 
         if self._should("sippy_api"):
             def t():
                 data, err = self.client.call_tool("sippy_api", {"path": "/api/releases"})
                 assert not err, data
-            self._test("sippy_api", t)
+            self._test("sippy_api", t, skip_reason=skip)
 
         if self._should("release_controller_api"):
             def t():
@@ -374,7 +378,7 @@ class SmokeTests:
                     "path": f"/api/v1/releasestream/{CONFIG['release']}.0-0.nightly/tags",
                 })
                 assert not err, data
-            self._test("release_controller_api", t)
+            self._test("release_controller_api", t, skip_reason=skip)
 
         if self._should("search_ci_api"):
             def t():
@@ -382,7 +386,7 @@ class SmokeTests:
                     "query": "e2e-aws-ovn", "params": {"maxAge": "6h"},
                 })
                 assert not err, data
-            self._test("search_ci_api", t)
+            self._test("search_ci_api", t, skip_reason=skip)
 
     def _summary(self):
         passed = sum(1 for r in self.results if r[0] == "PASS")

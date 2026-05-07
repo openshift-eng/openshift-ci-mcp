@@ -18,6 +18,7 @@ type Config struct {
 	ReleaseControllerURL string
 	SearchCIURL          string
 	Timeout              time.Duration
+	EnableProxyTools     bool
 }
 
 func DefaultConfig() Config {
@@ -52,9 +53,11 @@ func New(cfg Config) *server.MCPServer {
 	domain.RegisterSearchTools(s, search)
 	domain.RegisterPullRequestTools(s, sippy)
 
-	proxy.RegisterSippyProxy(s, sippy)
-	proxy.RegisterReleaseControllerProxy(s, rc)
-	proxy.RegisterSearchCIProxy(s, search)
+	if cfg.EnableProxyTools {
+		proxy.RegisterSippyProxy(s, sippy)
+		proxy.RegisterReleaseControllerProxy(s, rc)
+		proxy.RegisterSearchCIProxy(s, search)
+	}
 
 	return s
 }

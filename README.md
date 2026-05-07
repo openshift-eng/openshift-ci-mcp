@@ -37,7 +37,7 @@ MCP server providing read-only access to OpenShift CI data. Query Sippy, Release
 
 ### Proxy Tools
 
-Raw passthrough to upstream APIs for advanced use cases.
+Raw passthrough to upstream APIs for advanced use cases. Disabled by default to reduce schema overhead — enable with `--enable-proxy-tools` or `ENABLE_PROXY_TOOLS=true`.
 
 <!-- BEGIN PROXY TOOLS -->
 | Tool | Description |
@@ -126,6 +126,7 @@ claude mcp add openshift-ci go -- run github.com/openshift-eng/openshift-ci-mcp/
 | `--transport` | `stdio` | Transport mode: `stdio` or `http` |
 | `--port` | `8080` | HTTP port (only used with `--transport http`) |
 | `--timeout` | `30s` | Upstream request timeout |
+| `--enable-proxy-tools` | `false` | Register low-level proxy tools (`sippy_api`, `release_controller_api`, `search_ci_api`) |
 
 ### Environment Variables
 
@@ -134,6 +135,7 @@ claude mcp add openshift-ci go -- run github.com/openshift-eng/openshift-ci-mcp/
 | `SIPPY_URL` | `https://sippy.dptools.openshift.org` | Sippy base URL |
 | `RELEASE_CONTROLLER_URL` | `https://amd64.ocp.releases.ci.openshift.org` | Release Controller base URL |
 | `SEARCH_CI_URL` | `https://search.ci.openshift.org` | Search.CI base URL |
+| `ENABLE_PROXY_TOOLS` | `false` | Set to `true` to register proxy tools |
 
 ## Variant Filtering
 
@@ -150,13 +152,16 @@ Use `get_variants` to discover all available dimensions and values.
 ## Build
 
 ```bash
-make build          # Build binary to bin/
-make test           # Run unit tests
-make test-integration  # Run integration tests (requires network)
-make lint           # Run go vet
-make image          # Build container image
-make push           # Push to registry
-make clean          # Remove build artifacts
+make build              # Build binary to bin/
+make test               # Run unit tests
+make test-integration   # Run integration tests (requires network)
+make lint               # Run go vet
+make smoke              # Build + smoke test against binary
+make check              # Build + run mcpchecker eval suite
+make image              # Build container image
+make push               # Push to registry
+make generate           # Regenerate tool tables in README
+make clean              # Remove build artifacts
 ```
 
 Requires Go 1.24+.

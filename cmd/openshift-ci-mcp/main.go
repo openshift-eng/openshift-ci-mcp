@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/mark3labs/mcp-go/server"
@@ -21,7 +22,12 @@ func main() {
 
 	cfg := mcpserver.DefaultConfig()
 	cfg.Timeout = *timeout
-	cfg.EnableProxyTools = *enableProxyTools || os.Getenv("ENABLE_PROXY_TOOLS") == "true"
+	cfg.EnableProxyTools = *enableProxyTools
+	if envVal := os.Getenv("ENABLE_PROXY_TOOLS"); envVal != "" {
+		if parsed, err := strconv.ParseBool(envVal); err == nil {
+			cfg.EnableProxyTools = cfg.EnableProxyTools || parsed
+		}
+	}
 
 	if v := os.Getenv("SIPPY_URL"); v != "" {
 		cfg.SippyURL = v

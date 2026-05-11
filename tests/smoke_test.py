@@ -152,10 +152,23 @@ class SmokeTests:
             tools = self.client.list_tools()
             names = {t["name"] for t in tools}
             self.ctx["tool_names"] = names
-            assert len(tools) >= 18, f"expected at least 18 tools, got {len(tools)}"
-            assert len(tools) <= 21, f"expected at most 21 tools, got {len(tools)}"
-            for n in ["get_releases", "get_job_report", "search_ci_logs"]:
-                assert n in names, f"missing tool: {n}"
+            domain_tools = {
+                "get_releases", "get_release_health", "get_variants",
+                "get_job_report", "get_job_runs", "get_job_run_summary",
+                "get_test_report", "get_test_details", "get_recent_test_failures",
+                "get_component_readiness", "get_regressions", "get_regression_detail",
+                "get_payload_status", "get_payload_diff", "get_payload_test_failures",
+                "get_pull_requests", "get_pull_request_impact",
+                "search_ci_logs",
+            }
+            proxy_tools = {"sippy_api", "release_controller_api", "search_ci_api"}
+            missing_domain = domain_tools - names
+            assert not missing_domain, f"missing domain tools: {missing_domain}"
+            unexpected = names - domain_tools - proxy_tools
+            assert not unexpected, f"unexpected tools: {unexpected}"
+            if proxy_tools & names:
+                missing_proxy = proxy_tools - names
+                assert not missing_proxy, f"partial proxy tools registered: {missing_proxy}"
 
         self._test("list_tools", t)
 

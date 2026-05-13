@@ -41,7 +41,7 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithDestructiveHintAnnotation(false),
 			mcp.WithIdempotentHintAnnotation(true),
 			mcp.WithOpenWorldHintAnnotation(true),
-			mcp.WithString("release", mcp.Description("Release version. Default: current dev release. Can be inferred from job_name")),
+			mcp.WithString("release", mcp.Description("Release version. Default: current dev release.")),
 			mcp.WithString("job_name", mcp.Required(), mcp.Description("Exact job name")),
 			mcp.WithNumber("limit", mcp.Description("Max results (default 10)"), mcp.DefaultNumber(10)),
 		),

@@ -13,7 +13,7 @@ config:
       type: "builtin.claude-code"
 
   defaultTaskLimits:
-    timeout: "5m"
+    timeout: "10m"
     cleanupTimeout: "1m"
 
   taskSets:
@@ -41,7 +41,7 @@ config:
           - server: openshift-ci
             tool: get_job_report
         minToolCalls: 1
-        maxToolCalls: 7
+        maxToolCalls: 5
 
     - path: tasks/job-runs.yaml
       assertions:
@@ -49,14 +49,14 @@ config:
           - server: openshift-ci
             tool: get_job_runs
         minToolCalls: 1
-        maxToolCalls: 7
+        maxToolCalls: 5
 
     # Test tools
     - path: tasks/test-report.yaml
       assertions:
         toolsUsed:
           - server: openshift-ci
-            tool: get_test_report
+            tool: get_ci_test_report
         minToolCalls: 1
         maxToolCalls: 5
 
@@ -66,7 +66,7 @@ config:
           - server: openshift-ci
             tool: get_recent_test_failures
         minToolCalls: 1
-        maxToolCalls: 7
+        maxToolCalls: 5
 
     # Component readiness
     - path: tasks/component-readiness.yaml
@@ -100,18 +100,22 @@ config:
       assertions:
         toolsUsed:
           - server: openshift-ci
-            tool: get_pull_requests
+            tool: get_release_prs
         minToolCalls: 1
-        maxToolCalls: 7
+        maxToolCalls: 5
 
     # Multi-tool workflow
     - path: tasks/investigate-release.yaml
       assertions:
         toolsUsed:
           - server: openshift-ci
-            toolPattern: "get_.*"
+            tool: get_releases
+          - server: openshift-ci
+            tool: get_release_health
+          - server: openshift-ci
+            tool: get_job_report
         minToolCalls: 2
-        maxToolCalls: 10
+        maxToolCalls: 5
 
     # Proxy passthrough
     - path: tasks/sippy-api-proxy.yaml

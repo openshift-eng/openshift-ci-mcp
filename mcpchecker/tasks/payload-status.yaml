@@ -6,7 +6,7 @@ metadata:
   labels:
     suite: payloads
     category: basic
-
+  parallel: true
 spec:
   prompt:
     inline: |

@@ -6,14 +6,10 @@ metadata:
   labels:
     suite: workflow
     category: multi-tool
-
+  parallel: true
 spec:
-  limits:
-    timeout: "10m"
-
   prompt:
     inline: |
-      Investigate the health of the current in-development OpenShift release.
-      First find out which release is in development, then check its overall
-      health, and finally look at the worst-performing jobs on the aws platform.
+      Investigate the health of the current in-development OpenShift release
+      and then give an overview of the worst-performing jobs for single node OpenShift on the aws platform.
       Give me a summary of the release status with specific data points.

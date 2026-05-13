@@ -6,9 +6,9 @@ metadata:
   labels:
     suite: components
     category: basic
-
+  parallel: true
 spec:
   prompt:
     inline: |
       Check the component readiness status for the current in-development
-      OpenShift release. Which components have regressions?
+      OpenShift release and report components with regressions.

@@ -12,7 +12,7 @@ import (
 
 func RegisterReleaseControllerProxy(s *server.MCPServer, rc client.ReleaseController) {
 	s.AddTool(mcp.NewTool("release_controller_api",
-		mcp.WithDescription("Raw passthrough to the Release Controller API. Returns unmodified upstream response."),
+		mcp.WithDescription("Raw passthrough to the Release Controller API."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),

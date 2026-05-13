@@ -13,38 +13,41 @@ import (
 )
 
 func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
-	s.AddTool(mcp.NewTool("get_test_report",
-		mcp.WithDescription("Get test pass/fail/flake rates with filtering by name, component, and variant dimensions"),
+	s.AddTool(mcp.NewTool("get_ci_test_report",
+		mcp.WithDescription("Use to get pass/fail/flake rates for tests with optional filtering"),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
-		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
-		mcp.WithString("test_name", mcp.Description("Filter tests by name substring")),
-		mcp.WithString("component", mcp.Description("Filter by Jira component")),
-		mcp.WithString("arch", mcp.Description("Filter by architecture")),
-		mcp.WithString("topology", mcp.Description("Filter by topology")),
-		mcp.WithString("platform", mcp.Description("Filter by platform")),
-		mcp.WithString("network", mcp.Description("Filter by network")),
+		mcp.WithOpenWorldHintAnnotation(true),
+		mcp.WithString("release", mcp.Description("Release version. Default: current dev release.")),
+		mcp.WithString("test_name", mcp.Description("Test name substring filter")),
+		mcp.WithString("component", mcp.Description("Jira component name")),
+		mcp.WithString("arch", mcp.Description("Architecture: amd64, arm64, ppc64le, s390x, multi")),
+		mcp.WithString("topology", mcp.Description("Topology: ha, single, compact, external, microshift")),
+		mcp.WithString("platform", mcp.Description("Platform: aws, azure, gcp, metal, vsphere, rosa, etc.")),
+		mcp.WithString("network", mcp.Description("Network: ovn, sdn, cilium")),
 		mcp.WithNumber("limit", mcp.Description("Max results per page (default 25)"), mcp.DefaultNumber(25)),
 		mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
 	), GetTestReportHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_test_details",
-		mcp.WithDescription("Detailed test analysis — pass rates broken down by variant and by job"),
+		mcp.WithDescription("Use to get pass rates broken down by variant and by job."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("test_name", mcp.Required(), mcp.Description("Exact test name")),
 	), GetTestDetailsHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_recent_test_failures",
-		mcp.WithDescription("Tests that have recently started failing — useful for detecting new regressions"),
+		mcp.WithDescription("Tests that recently started failing, useful for detecting new regressions."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
-		mcp.WithString("period", mcp.Description("Time window as a Go duration (e.g. '168h' for 7 days, '48h' for 2 days). Default: 168h")),
+		mcp.WithString("period", mcp.Description("Time window (e.g. '168h', '48h'). Default: 168h")),
 	), GetRecentTestFailuresHandler(sippy))
 }
 

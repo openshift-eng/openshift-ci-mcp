@@ -15,24 +15,24 @@ MCP server providing read-only access to OpenShift CI data. Query Sippy, Release
 <!-- BEGIN DOMAIN TOOLS -->
 | Tool | Description |
 | ---- | ----------- |
-| `get_component_readiness` | Component readiness report — the binding release gate. Shows statistical analysis comparing current release behavior against the previous stable release. This endpoint can be slow (30+ seconds). If view is omitted, the server auto-discovers the first available view, which adds an extra API call. |
-| `get_job_report` | Get job pass rates with filtering by name, variant dimensions, and pass rate thresholds. Returns paginated results. |
-| `get_job_run_summary` | Detailed summary of a single job run — test failures, cluster operator status |
-| `get_job_runs` | Get recent runs of a specific CI job with pass/fail results, timings, and risk analysis. This is the primary tool for fetching job run history — do not use sippy_api, search_ci_api, or search_ci_logs for this purpose. Release version can be inferred from job names (e.g. '4.18' from 'nightly-4.18-e2e-aws'). |
-| `get_payload_diff` | PRs that changed between two payloads — useful for identifying what went into a rejected payload |
-| `get_payload_status` | Recent payload acceptance/rejection status from the Release Controller. Shows payload tags with their phase (Accepted/Rejected/Ready). |
-| `get_payload_test_failures` | Test failures across payload runs |
-| `get_pull_request_impact` | Get detailed test failure data for a SPECIFIC pull request (requires a known PR number). To find PR numbers first, use get_pull_requests. Rate-limited to 20 req/hour. |
-| `get_pull_requests` | List pull requests with titles, status, and summary data. Use this to discover and browse PRs. Supports filtering by org, repo, and release. For detailed CI test impact of a specific PR, use get_pull_request_impact after finding the PR number here. |
-| `get_recent_test_failures` | Tests that have recently started failing — useful for detecting new regressions |
-| `get_regression_detail` | Details of a specific regression including linked triages and Jira bugs |
-| `get_regressions` | Active regressions from Component Readiness — tests that are performing significantly worse than the previous release |
-| `get_release_health` | Overall health of a release — install/upgrade/infrastructure success rates, variant summary, and payload acceptance statistics |
-| `get_releases` | List available OpenShift releases with GA dates and development start dates |
-| `get_test_details` | Detailed test analysis — pass rates broken down by variant and by job |
-| `get_test_report` | Get test pass/fail/flake rates with filtering by name, component, and variant dimensions |
-| `get_variants` | List all variant dimensions and their possible values. Use this to discover valid values for arch, topology, platform, network, and other variant filters. |
-| `search_ci_logs` | Search build logs and JUnit failures across OpenShift CI for specific error messages, test names, or patterns. Not for fetching job run history (use get_job_runs) or listing jobs (use get_job_report). |
+| `get_ci_test_report` | Use to get pass/fail/flake rates for tests with optional filtering |
+| `get_component_readiness` | Use to get a report on component readiness for the current dev cycle. Can be slow (30+ seconds) |
+| `get_job_report` | Use to get CI job pass rates with filtering and pagination |
+| `get_job_run_summary` | Use to get test failures and cluster operator status of a single job run |
+| `get_job_runs` | Use to get results, timings, and risk analysis of recent job runs |
+| `get_payload_diff` | Use to list pull request changes between payload tags. |
+| `get_payload_status` | Use to get recent payload acceptance status from the Release Controller. |
+| `get_payload_test_failures` | Use to get test failures for payload job runs |
+| `get_pr_impact` | Use to get test failure impact data for a specific, known pull request. Rate-limited to 20 req/hour. |
+| `get_recent_test_failures` | Tests that recently started failing, useful for detecting new regressions. |
+| `get_regression_detail` | Use when you need details about a regression with triages and Jiras. |
+| `get_regressions` | Use to get tests performing significantly worse than the previous release |
+| `get_release_health` | Use to get health data for a specific release such as success rates, variant summary, and payload acceptance. |
+| `get_release_prs` | Use to get a list of pull requests for a specific release or presubmits |
+| `get_releases` | Use to get OpenShift releases with availability and dev cycle dates |
+| `get_test_details` | Use to get pass rates broken down by variant and by job. |
+| `get_variants` | Use to list variants and their possible values (arch, topology, platform, network, etc.). |
+| `search_ci_logs` | Search logs and JUnit output across OpenShift CI for error messages, test names, or patterns. |
 <!-- END DOMAIN TOOLS -->
 
 ### Proxy Tools
@@ -42,9 +42,9 @@ Raw passthrough to upstream APIs for advanced use cases. Disabled by default to 
 <!-- BEGIN PROXY TOOLS -->
 | Tool | Description |
 | ---- | ----------- |
-| `release_controller_api` | Raw passthrough to the Release Controller API. Returns unmodified upstream response. |
-| `search_ci_api` | Low-level passthrough to Search.CI API (advanced use only). Prefer search_ci_logs for searching build logs and test failures. |
-| `sippy_api` | Low-level passthrough to any Sippy API endpoint (advanced use only). Prefer domain-specific tools (get_job_runs, get_job_report, get_test_report, get_pull_requests, etc.) which handle filtering, pagination, and release resolution automatically. |
+| `release_controller_api` | Raw passthrough to the Release Controller API. |
+| `search_ci_api` | Raw passthrough to the Search.CI API. |
+| `sippy_api` | Raw passthrough to any Sippy API endpoint. |
 <!-- END PROXY TOOLS -->
 
 ## Usage

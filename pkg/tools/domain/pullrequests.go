@@ -14,26 +14,28 @@ import (
 )
 
 func RegisterPullRequestTools(s *server.MCPServer, sippy client.Sippy) {
-	s.AddTool(mcp.NewTool("get_pull_request_impact",
-		mcp.WithDescription("Get detailed test failure data for a SPECIFIC pull request (requires a known PR number). To find PR numbers first, use get_pull_requests. Rate-limited to 20 req/hour."),
+	s.AddTool(mcp.NewTool("get_pr_impact",
+		mcp.WithDescription("Use to get test failure impact data for a specific, known pull request. Rate-limited to 20 req/hour."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("org", mcp.Required(), mcp.Description("GitHub org (e.g. 'openshift')")),
 		mcp.WithString("repo", mcp.Required(), mcp.Description("GitHub repo (e.g. 'kubernetes')")),
-		mcp.WithString("pr_number", mcp.Required(), mcp.Description("Pull request number")),
-		mcp.WithString("start_date", mcp.Description("Start date for test results (YYYY-MM-DD). Defaults to 14 days ago.")),
-		mcp.WithString("end_date", mcp.Description("End date for test results (YYYY-MM-DD). Defaults to today.")),
+		mcp.WithString("pr_number", mcp.Required(), mcp.Description("GitHub pull request number")),
+		mcp.WithString("start_date", mcp.Description("Start date (YYYY-MM-DD, default: 14 days ago)")),
+		mcp.WithString("end_date", mcp.Description("End date (YYYY-MM-DD, default: today)")),
 	), GetPullRequestImpactHandler(sippy))
 
-	s.AddTool(mcp.NewTool("get_pull_requests",
-		mcp.WithDescription("List pull requests with titles, status, and summary data. Use this to discover and browse PRs. Supports filtering by org, repo, and release. For detailed CI test impact of a specific PR, use get_pull_request_impact after finding the PR number here."),
+	s.AddTool(mcp.NewTool("get_release_prs",
+		mcp.WithDescription("Use to get a list of pull requests for a specific release or presubmits"),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
-		mcp.WithString("release", mcp.Description("Release version. Defaults to 'Presubmits'.")),
-		mcp.WithString("org", mcp.Description("Filter by GitHub org")),
-		mcp.WithString("repo", mcp.Description("Filter by GitHub repo")),
+		mcp.WithOpenWorldHintAnnotation(true),
+		mcp.WithString("release", mcp.Description("Release version. Can be a version number (e.g. '4.18') or the default: 'Presubmits'")),
+		mcp.WithString("org", mcp.Description("GitHub org")),
+		mcp.WithString("repo", mcp.Description("GitHub repo")),
 		mcp.WithNumber("limit", mcp.Description("Max results per page (default 25)"), mcp.DefaultNumber(25)),
 		mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
 	), GetPullRequestsHandler(sippy))

@@ -14,29 +14,32 @@ import (
 
 func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(mcp.NewTool("get_component_readiness",
-		mcp.WithDescription("Component readiness report — the binding release gate. Shows statistical analysis comparing current release behavior against the previous stable release. This endpoint can be slow (30+ seconds). If view is omitted, the server auto-discovers the first available view, which adds an extra API call."),
+		mcp.WithDescription("Use to get a report on component readiness for the current dev cycle. Can be slow (30+ seconds)"),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
-		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
-		mcp.WithString("view", mcp.Description("Predefined view name (default: server default). Use get_variants or check Sippy for available views.")),
+		mcp.WithOpenWorldHintAnnotation(true),
+		mcp.WithString("release", mcp.Description("Release version. Default: current dev release.")),
+		mcp.WithString("view", mcp.Description("Predefined view name. Default: auto-discovers first available view.")),
 	), GetComponentReadinessHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_regressions",
-		mcp.WithDescription("Active regressions from Component Readiness — tests that are performing significantly worse than the previous release"),
+		mcp.WithDescription("Use to get tests performing significantly worse than the previous release"),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
-		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
+		mcp.WithOpenWorldHintAnnotation(true),
+		mcp.WithString("release", mcp.Description("Release version. Default: current dev release")),
 		mcp.WithString("view", mcp.Description("Component Readiness view name")),
 		mcp.WithString("component", mcp.Description("Filter by component name")),
 	), GetRegressionsHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_regression_detail",
-		mcp.WithDescription("Details of a specific regression including linked triages and Jira bugs"),
+		mcp.WithDescription("Use when you need details about a regression with triages and Jiras."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("regression_id", mcp.Required(), mcp.Description("Regression ID")),
 	), GetRegressionDetailHandler(sippy))
 }

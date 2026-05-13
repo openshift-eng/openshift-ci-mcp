@@ -14,22 +14,24 @@ import (
 func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy) {
 	s.AddTool(
 		mcp.NewTool("get_releases",
-			mcp.WithDescription("List available OpenShift releases with GA dates and development start dates"),
+			mcp.WithDescription("Use to get OpenShift releases with availability and dev cycle dates"),
 			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDestructiveHintAnnotation(false),
 			mcp.WithIdempotentHintAnnotation(true),
+			mcp.WithOpenWorldHintAnnotation(true),
 		),
 		GetReleasesHandler(sippy),
 	)
 
 	s.AddTool(
 		mcp.NewTool("get_release_health",
-			mcp.WithDescription("Overall health of a release — install/upgrade/infrastructure success rates, variant summary, and payload acceptance statistics"),
+			mcp.WithDescription("Use to get health data for a specific release such as success rates, variant summary, and payload acceptance."),
 			mcp.WithReadOnlyHintAnnotation(true),
 			mcp.WithDestructiveHintAnnotation(false),
 			mcp.WithIdempotentHintAnnotation(true),
+			mcp.WithOpenWorldHintAnnotation(true),
 			mcp.WithString("release",
-				mcp.Description("Release version (e.g. '4.18'). Defaults to current development release if omitted."),
+				mcp.Description("Release version (e.g. '4.18')"),
 			),
 		),
 		GetReleaseHealthHandler(sippy),

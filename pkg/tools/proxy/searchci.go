@@ -12,7 +12,7 @@ import (
 
 func RegisterSearchCIProxy(s *server.MCPServer, search client.SearchCI) {
 	s.AddTool(mcp.NewTool("search_ci_api",
-		mcp.WithDescription("Low-level passthrough to Search.CI API (advanced use only). Prefer search_ci_logs for searching build logs and test failures."),
+		mcp.WithDescription("Raw passthrough to the Search.CI API."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),

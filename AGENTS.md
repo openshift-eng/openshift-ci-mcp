@@ -11,10 +11,15 @@ Use semantic commit prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refa
 ```bash
 make build              # Build binary to bin/
 make test               # Run unit tests
-make test-integration   # Run integration tests (hits real Sippy/RC APIs, requires network)
+make test-integration   # Run integration tests (requires network)
 make lint               # Run go vet
-make image              # Build container image with podman
-go test ./pkg/tools/domain/... -run TestGetJobReport -v  # Run a single test
+make smoke              # Build + smoke test against binary
+make check              # Build + run mcpchecker eval suite
+make image              # Build container image
+make push               # Push to container registry
+make generate           # Regenerate tool tables in README
+make clean              # Remove build artifacts
+make verify             # Run all verification targets
 ```
 
 ## Architecture

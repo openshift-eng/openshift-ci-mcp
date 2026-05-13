@@ -25,12 +25,16 @@ test: add coverage for release resolution edge cases
 
 ```bash
 make build              # Build binary to bin/
-make test               # Unit tests
-make test-integration   # Integration tests (requires network, hits live APIs)
-make lint               # go vet
+make test               # Run unit tests
+make test-integration   # Run integration tests (requires network)
+make lint               # Run go vet
 make smoke              # Build + smoke test against binary
-make smoke-container    # Smoke test against container image
 make check              # Build + run mcpchecker eval suite
+make image              # Build container image
+make push               # Push to container registry
+make generate           # Regenerate tool tables in README
+make clean              # Remove build artifacts
+make verify             # Run all verification targets
 ```
 
 Run a single test:
@@ -103,8 +107,7 @@ bin/openshift-ci-mcp --transport http --port 8080
 6. Verify:
 
     ```bash
-    go test ./pkg/tools/domain/... -v
-    go vet ./...
+    make verify
     ```
 
 **Important:** Probe the actual Sippy API before building. Parameter names and response shapes often differ from what you'd expect. Use curl or the `sippy-api-explorer` agent.
@@ -115,16 +118,10 @@ The smoke test suite (`tests/smoke_test.py`) starts the MCP server over stdio, c
 
 ```bash
 # Against binary
-python3 tests/smoke_test.py --binary bin/openshift-ci-mcp
+make smoke
 
-# Against container
-python3 tests/smoke_test.py --container quay.io/{{org_name}}/openshift-ci-mcp:latest
-
-# Specific tools only
-python3 tests/smoke_test.py --binary bin/openshift-ci-mcp --tools get_releases get_variants
-
-# Custom release/timeout
-python3 tests/smoke_test.py --binary bin/openshift-ci-mcp --release 4.19 --timeout 60
+# Against container image
+make smoke-container
 ```
 
 ## Project Layout

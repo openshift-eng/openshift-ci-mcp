@@ -1,1 +1,6 @@
 bin/
+__pycache__
+
+# mcpchecker output files
+mcpchecker-*-out.json
+*-error.txt

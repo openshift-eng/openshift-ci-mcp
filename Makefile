@@ -42,8 +42,27 @@ smoke-container:
 generate:
 	go generate ./pkg/server/...
 
-check: build
-	mcpchecker check mcpchecker/eval.yaml
+MCPCHECKER_PARALLEL_TESTS := 4  # The number of tests to allow mcpchecker to run in parallel
+MCPCHECKER_TEST_COUNT := 1			# The number of times to run each test
+MCPCHECKER_OUTPUT_TYPE = json		# Get JSON, defaults to text
+check: mcpchecker build
+	$(MCPCHECKER) check mcpchecker/eval.yaml -p $(MCPCHECKER_PARALLEL_TESTS) -n $(MCPCHECKER_TEST_COUNT) -o $(MCPCHECKER_OUTPUT_TYPE)
 
 clean:
 	rm -rf bin/
+
+verify: test test-integration smoke
+
+# Check for mcpchecker and download if necessary
+.PHONY: mcpchecker
+MCPCHECKER = ./bin/mcpchecker
+mcpchecker:
+ifeq (,$(wildcard $(MCPCHECKER)))
+	$(call go-get-tool,github.com/mcpchecker/mcpchecker/cmd/mcpchecker@v0.0.18)
+endif
+
+# go-get-tool will 'go get' any package $2 and install it to $1.
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+define go-get-tool
+	@echo "Downloading $(1)"; GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly $(1)
+endef

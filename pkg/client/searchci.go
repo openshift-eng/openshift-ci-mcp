@@ -29,9 +29,11 @@ func (c *searchCIClient) Search(ctx context.Context, query string, params map[st
 	}
 	q := u.Query()
 	q.Set("search", query)
-	q.Set("type", "all")
 	for k, v := range params {
 		q.Set(k, v)
+	}
+	if q.Get("type") == "" {
+		q.Set("type", "all")
 	}
 	u.RawQuery = q.Encode()
 	return c.doRequest(ctx, u.String())

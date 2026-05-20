@@ -17,9 +17,10 @@ import (
 func main() {
 	transport := flag.String("transport", "stdio", "Transport mode: stdio or http")
 	port := flag.Int("port", 8080, "HTTP port (only used with --transport http)")
-	timeout := flag.Duration("timeout", 30*time.Second, "Upstream request timeout")
+	timeout := flag.Duration("timeout", 60*time.Second, "Upstream request timeout")
 	toolGroups := flag.String("tools", "",
 		"Comma-separated tool groups or individual tool names to enable (default: all domain groups)")
+	cacheTTL := flag.Duration("cache-ttl", 5*time.Minute, "TTL for client-side response cache")
 	enableProxyTools := flag.Bool("enable-proxy-tools", false,
 		"Add proxy tools on top of the active tool groups")
 	flag.Parse()
@@ -31,6 +32,7 @@ func main() {
 
 	cfg := mcpserver.DefaultConfig()
 	cfg.Timeout = *timeout
+	cfg.CacheTTL = *cacheTTL
 
 	if raw != "" {
 		tools, err := parseTools(raw)

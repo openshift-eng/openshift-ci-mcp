@@ -28,6 +28,8 @@ func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
 		mcp.WithString("network", mcp.Description("Network: ovn, sdn, cilium")),
 		mcp.WithNumber("limit", mcp.Description("Max results per page (default 25)"), mcp.DefaultNumber(25)),
 		mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
+		mcp.WithBoolean("include_metrics", mcp.Description("Include detailed metrics sub-object with previous/derived stats (default: false)")),
+		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 	), GetTestReportHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_test_details",
@@ -38,6 +40,11 @@ func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
 		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("test_name", mcp.Required(), mcp.Description("Exact test name")),
+		mcp.WithString("arch", mcp.Description("Architecture: amd64, arm64, ppc64le, s390x, multi")),
+		mcp.WithString("topology", mcp.Description("Topology: ha, single, compact, external, microshift")),
+		mcp.WithString("platform", mcp.Description("Platform: aws, azure, gcp, metal, vsphere, rosa, etc.")),
+		mcp.WithString("network", mcp.Description("Network: ovn, sdn, cilium")),
+		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 	), GetTestDetailsHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_recent_test_failures",
@@ -48,6 +55,12 @@ func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
 		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Defaults to current dev release.")),
 		mcp.WithString("period", mcp.Description("Time window (e.g. '168h', '48h'). Default: 168h")),
+		mcp.WithString("test_name", mcp.Description("Test name substring filter")),
+		mcp.WithString("component", mcp.Description("Jira component name")),
+		mcp.WithNumber("limit", mcp.Description("Max results per page (default 25)"), mcp.DefaultNumber(25)),
+		mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
+		mcp.WithBoolean("include_metrics", mcp.Description("Include detailed metrics sub-object with previous/derived stats (default: false)")),
+		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 	), GetRecentTestFailuresHandler(sippy))
 }
 
@@ -76,6 +89,12 @@ func GetTestReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if err != nil {
 			return tools.ToolError(err)
 		}
+		if trimmed, err := client.ReshapeTestReport(data, req.GetBool("include_metrics", false)); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
+		}
 		return mcp.NewToolResultText(string(data)), nil
 	}
 }
@@ -91,9 +110,19 @@ func GetTestDetailsHandler(sippy client.Sippy) server.ToolHandlerFunc {
 			return tools.InvalidParam("test_name", "required")
 		}
 		params := map[string]string{"release": release, "test": testName}
+		vp := extractVariantParams(req)
+		if err := filter.MergeInto(params, vp); err != nil {
+			return tools.ToolError(err)
+		}
 		data, err := sippy.Get(ctx, "/api/tests/details", params)
 		if err != nil {
 			return tools.ToolError(err)
+		}
+		if trimmed, err := client.ReshapeJSON[client.TestDetailsResponse](data); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
 		}
 		return mcp.NewToolResultText(string(data)), nil
 	}
@@ -108,10 +137,24 @@ func GetRecentTestFailuresHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		params := map[string]string{
 			"release": release,
 			"period":  req.GetString("period", "168h"),
+			"perPage": fmt.Sprintf("%d", req.GetInt("limit", 25)),
+			"page":    fmt.Sprintf("%d", req.GetInt("page", 1)),
+		}
+		if name := req.GetString("test_name", ""); name != "" {
+			filter.MergeItemInto(params, filter.Item{ColumnField: "name", OperatorValue: "contains", Value: name})
+		}
+		if component := req.GetString("component", ""); component != "" {
+			filter.MergeItemInto(params, filter.Item{ColumnField: "jira_component", OperatorValue: "equals", Value: component})
 		}
 		data, err := sippy.Get(ctx, "/api/tests/recent_failures", params)
 		if err != nil {
 			return tools.ToolError(err)
+		}
+		if trimmed, err := client.ReshapeTestReport(data, req.GetBool("include_metrics", false)); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
 		}
 		return mcp.NewToolResultText(string(data)), nil
 	}

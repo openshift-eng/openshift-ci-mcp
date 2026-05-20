@@ -28,8 +28,11 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithString("network", mcp.Description("Network: ovn, sdn, cilium")),
 			mcp.WithNumber("min_pass_rate", mcp.Description("Min pass rate % (e.g. 0)")),
 			mcp.WithNumber("max_pass_rate", mcp.Description("Max pass rate % (e.g. 80)")),
+			mcp.WithString("sort_field", mcp.Description("Field to sort by (default: current_pass_percentage)")),
+			mcp.WithString("sort_order", mcp.Description("Sort direction: asc or desc (default: asc)")),
 			mcp.WithNumber("limit", mcp.Description("Max results per page (default 25)"), mcp.DefaultNumber(25)),
 			mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
+			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
 		GetJobReportHandler(sippy),
 	)
@@ -44,6 +47,8 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithString("release", mcp.Description("Release version. Default: current dev release.")),
 			mcp.WithString("job_name", mcp.Required(), mcp.Description("Exact job name")),
 			mcp.WithNumber("limit", mcp.Description("Max results (default 10)"), mcp.DefaultNumber(10)),
+			mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
+			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
 		GetJobRunsHandler(sippy),
 	)
@@ -56,6 +61,7 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithIdempotentHintAnnotation(true),
 			mcp.WithOpenWorldHintAnnotation(true),
 			mcp.WithString("prow_job_run_id", mcp.Required(), mcp.Description("Prow job run ID")),
+			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
 		GetJobRunSummaryHandler(sippy),
 	)
@@ -70,8 +76,8 @@ func GetJobReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
 
 		params := map[string]string{
 			"release":   release,
-			"sortField": "current_pass_percentage",
-			"sort":      "asc",
+			"sortField": req.GetString("sort_field", "current_pass_percentage"),
+			"sort":      req.GetString("sort_order", "asc"),
 			"perPage":   fmt.Sprintf("%d", req.GetInt("limit", 25)),
 			"page":      fmt.Sprintf("%d", req.GetInt("page", 1)),
 		}
@@ -107,6 +113,12 @@ func GetJobReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if err != nil {
 			return tools.ToolError(err)
 		}
+		if trimmed, err := client.ReshapeJSON[[]client.JobReportRow](data); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
+		}
 		return mcp.NewToolResultText(string(data)), nil
 	}
 }
@@ -126,12 +138,19 @@ func GetJobRunsHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		params := map[string]string{
 			"release": release,
 			"perPage": fmt.Sprintf("%d", req.GetInt("limit", 10)),
+			"page":    fmt.Sprintf("%d", req.GetInt("page", 1)),
 			"filter":  fmt.Sprintf(`{"items":[{"columnField":"name","operatorValue":"equals","value":%q}],"linkOperator":"and"}`, jobName),
 		}
 
 		data, err := sippy.Get(ctx, "/api/jobs/runs", params)
 		if err != nil {
 			return tools.ToolError(err)
+		}
+		if trimmed, err := client.ReshapeJSON[client.JobRunsResponse](data); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
 		}
 		return mcp.NewToolResultText(string(data)), nil
 	}
@@ -148,6 +167,12 @@ func GetJobRunSummaryHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		data, err := sippy.Get(ctx, "/api/job/run/summary", params)
 		if err != nil {
 			return tools.ToolError(err)
+		}
+		if trimmed, err := client.ReshapeJSON[client.JobRunSummary](data); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
 		}
 		return mcp.NewToolResultText(string(data)), nil
 	}

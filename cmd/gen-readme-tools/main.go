@@ -43,10 +43,10 @@ func buildDomainServer() *mcpserver.MCPServer {
 	domain.RegisterVariantTools(s, sippy)
 	domain.RegisterJobTools(s, sippy)
 	domain.RegisterTestTools(s, sippy)
-	domain.RegisterComponentTools(s, sippy)
-	domain.RegisterPayloadTools(s, sippy, rc)
+	domain.RegisterComponentTools(s, sippy, nil)
+	domain.RegisterPayloadTools(s, sippy, rc, nil)
 	domain.RegisterSearchTools(s, search)
-	domain.RegisterPullRequestTools(s, sippy)
+	domain.RegisterPullRequestTools(s, sippy, nil)
 
 	return s
 }

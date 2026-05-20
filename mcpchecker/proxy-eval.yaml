@@ -1,0 +1,32 @@
+kind: Eval
+metadata:
+  name: "openshift-ci-mcp-proxies"
+
+config:
+  agent:
+    type: "builtin.claude-code"
+
+  mcpConfigFile: proxy-mcp-config.yaml
+
+  llmJudge:
+    ref:
+      type: "builtin.claude-code"
+
+  defaultTaskLimits:
+    timeout: "10m"
+    cleanupTimeout: "1m"
+
+  taskSets:
+    # Proxy passthrough (sippy_api)
+    - glob: tasks/*.yaml
+      labelSelector:
+        suite: proxies
+      assertions:
+        toolsUsed:
+          - server: openshift-ci
+            tool: sippy_api
+        toolsNotUsed:
+          - server: openshift-ci
+            toolPattern: "get_.*"
+        minToolCalls: 1
+        maxToolCalls: 3

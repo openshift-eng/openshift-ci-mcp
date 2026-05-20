@@ -157,7 +157,7 @@ class SmokeTests:
             names = {t["name"] for t in tools}
             self.ctx["tool_names"] = names
             domain_tools = {
-                "get_releases", "get_release_health", "get_variants",
+                "get_releases", "get_release_health", "get_variants", "get_tool_fields",
                 "get_job_report", "get_job_runs", "get_job_run_summary",
                 "get_ci_test_report", "get_test_details", "get_recent_test_failures",
                 "get_component_readiness", "get_regressions", "get_regression_detail",
@@ -278,7 +278,7 @@ class SmokeTests:
             def t():
                 data, err = self.client.call_tool("get_recent_test_failures", {
                     "release": CONFIG["release"], "period": "24h",
-                })
+                }, timeout=CONFIG["timeout"] + 40)
                 assert not err, data
             self._test("get_recent_test_failures", t)
 
@@ -295,8 +295,8 @@ class SmokeTests:
             def t():
                 data, err = self.client.call_tool("get_regressions", {"release": CONFIG["release"]})
                 assert not err, data
-                regs = data if isinstance(data, list) else data.get("regressions", [])
-                if regs:
+                regs = data.get("rows", data) if isinstance(data, dict) else data
+                if isinstance(regs, list) and regs:
                     self.ctx["regression_id"] = str(regs[0].get("id") or regs[0].get("regressionId", ""))
             self._test("get_regressions", t)
 
@@ -335,6 +335,8 @@ class SmokeTests:
                 if err and isinstance(data, dict) and data.get("status_code") in (400, 404):
                     return  # upstream may not have previous payload data
                 assert not err, data
+                if isinstance(data, dict) and "rows" in data:
+                    assert isinstance(data["rows"], list)
             self._test("get_payload_diff", t,
                         skip_reason=None if self.ctx.get("payload_tag") else "no payload_tag from get_payload_status")
 
@@ -358,9 +360,10 @@ class SmokeTests:
                     "org": "openshift", "limit": 5,
                 })
                 assert not err, data
-                assert isinstance(data, list), f"expected list, got {type(data)}"
-                if data:
-                    pr = data[0]
+                rows = data.get("rows", data) if isinstance(data, dict) else data
+                assert isinstance(rows, list), f"expected rows list, got {type(rows)}"
+                if rows:
+                    pr = rows[0]
                     self.ctx["pr_org"] = pr.get("org", "openshift")
                     self.ctx["pr_repo"] = pr.get("repo", "")
                     self.ctx["pr_number"] = str(pr.get("number") or pr.get("prNumber", ""))
@@ -384,7 +387,7 @@ class SmokeTests:
             def t():
                 data, err = self.client.call_tool("search_ci_logs", {
                     "query": "operator install timeout", "max_age": "24h",
-                }, timeout=CONFIG["timeout"] + 10)
+                }, timeout=CONFIG["timeout"] + 40)
                 if err and isinstance(data, dict):
                     msg = data.get("error", "")
                     if "timeout" in msg.lower() or "deadline exceeded" in msg.lower():

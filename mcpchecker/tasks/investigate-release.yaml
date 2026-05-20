@@ -11,5 +11,5 @@ spec:
   prompt:
     inline: |
       Investigate the health of the current in-development OpenShift release
-      and then give an overview of the worst-performing jobs for single node OpenShift on the aws platform.
+      and then give an overview of the worst-performing job for single node OpenShift on the aws platform.
       Give me a summary of the release status with specific data points.

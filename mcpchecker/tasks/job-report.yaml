@@ -11,5 +11,5 @@ spec:
   prompt:
     inline: |
       Get the CI job report for the current in-development OpenShift release.
-      Focus on jobs running on the aws platform with sdn network type.
-      Summarize the worst-performing jobs by pass rate.
+      Focus on jobs for single node openshift on the aws platform.
+      Summarize the worst-performing job by pass rate.

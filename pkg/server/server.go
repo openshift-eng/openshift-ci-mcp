@@ -23,7 +23,7 @@ type ToolGroup struct {
 }
 
 var AllGroups = []ToolGroup{
-	{Name: "core", Desc: "Release metadata and variant dimensions", Tools: []string{"get_releases", "get_release_health", "get_variants"}},
+	{Name: "core", Desc: "Release metadata and variant dimensions", Tools: []string{"get_releases", "get_release_health", "get_variants", "get_tool_fields"}},
 	{Name: "payload", Desc: "Component readiness, regressions, and payload acceptance", Tools: []string{"get_component_readiness", "get_regressions", "get_regression_detail", "get_payload_status", "get_payload_diff", "get_payload_test_failures"}},
 	{Name: "jobs", Desc: "CI job pass rates and run history", Tools: []string{"get_job_report", "get_job_runs", "get_job_run_summary"}},
 	{Name: "tests", Desc: "Test pass/fail/flake rates and recent failures", Tools: []string{"get_ci_test_report", "get_test_details", "get_recent_test_failures"}},

@@ -5,7 +5,7 @@ VERSION ?= 0.0.0-dev
 
 PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 
-.PHONY: build build-all test test-integration lint smoke smoke-container image push clean generate check check-core check-payload check-jobs check-tests check-prs check-proxies check-all
+.PHONY: build build-all test test-integration lint smoke smoke-container image push clean generate check check-domain check-core check-payload check-jobs check-tests check-prs check-proxies check-all
 
 build:
 	go build -o bin/$(BINARY) ./cmd/$(BINARY)
@@ -46,7 +46,9 @@ MCPCHECKER_PARALLEL_TESTS := 4  # The number of tests to allow mcpchecker to run
 MCPCHECKER_TEST_COUNT := 1			# The number of times to run each test
 MCPCHECKER_OUTPUT_TYPE = json		# Get JSON, defaults to text
 
-check: mcpchecker build
+check: check-domain check-proxies
+
+check-domain: mcpchecker build
 	$(MCPCHECKER) check mcpchecker/domain-eval.yaml -p $(MCPCHECKER_PARALLEL_TESTS) -n $(MCPCHECKER_TEST_COUNT) -o $(MCPCHECKER_OUTPUT_TYPE)
 
 check-core check-payload check-jobs check-tests check-prs: check-%: mcpchecker build
@@ -55,7 +57,7 @@ check-core check-payload check-jobs check-tests check-prs: check-%: mcpchecker b
 check-proxies: mcpchecker build
 	$(MCPCHECKER) check mcpchecker/proxy-eval.yaml -p $(MCPCHECKER_PARALLEL_TESTS) -n $(MCPCHECKER_TEST_COUNT) -o $(MCPCHECKER_OUTPUT_TYPE)
 
-check-all: check check-proxies
+check-all: check
 
 clean:
 	rm -rf bin/

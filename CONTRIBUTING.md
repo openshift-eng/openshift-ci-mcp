@@ -102,7 +102,7 @@ bin/openshift-ci-mcp --transport http --port 8080
 
 4. Wire it up in `pkg/server/server.go` inside `New()` if you created a new registration function.
 
-5. Add tests using `newMockSippy()` or `newCapturingSippy()` from `testhelpers_test.go`.
+5. Add tests using `newMockSippy()` from `testhelpers_test.go` for canned responses. Use `&capturingSippy{}` to assert on parameters sent upstream.
 
 6. Verify:
 

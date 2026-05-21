@@ -89,6 +89,9 @@ func truncatePayloadTags(data []byte, limit int) ([]byte, error) {
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return nil, err
 	}
+	if limit < 0 {
+		limit = 0
+	}
 	if len(payload.Tags) > limit {
 		payload.Tags = payload.Tags[:limit]
 	}

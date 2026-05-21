@@ -176,7 +176,9 @@ func TestPaginateArray_Page1(t *testing.T) {
 		t.Fatalf("PaginateArray failed: %v", err)
 	}
 	var result map[string]any
-	json.Unmarshal(out, &result)
+	if err := json.Unmarshal(out, &result); err != nil {
+		t.Fatalf("unmarshal result: %v", err)
+	}
 	if result["total_rows"].(float64) != 5 {
 		t.Errorf("expected total_rows=5, got %v", result["total_rows"])
 	}
@@ -199,7 +201,9 @@ func TestPaginateArray_Page2(t *testing.T) {
 		t.Fatalf("PaginateArray failed: %v", err)
 	}
 	var result map[string]any
-	json.Unmarshal(out, &result)
+	if err := json.Unmarshal(out, &result); err != nil {
+		t.Fatalf("unmarshal result: %v", err)
+	}
 	rows := result["rows"].([]any)
 	if len(rows) != 2 {
 		t.Errorf("expected 2 rows on page 2, got %d", len(rows))
@@ -217,7 +221,9 @@ func TestPaginateArray_BeyondRange(t *testing.T) {
 		t.Fatalf("PaginateArray failed: %v", err)
 	}
 	var result map[string]any
-	json.Unmarshal(out, &result)
+	if err := json.Unmarshal(out, &result); err != nil {
+		t.Fatalf("unmarshal result: %v", err)
+	}
 	rows := result["rows"].([]any)
 	if len(rows) != 0 {
 		t.Errorf("expected 0 rows beyond range, got %d", len(rows))
@@ -233,7 +239,9 @@ func TestPaginateArray_Empty(t *testing.T) {
 		t.Fatalf("PaginateArray failed: %v", err)
 	}
 	var result map[string]any
-	json.Unmarshal(out, &result)
+	if err := json.Unmarshal(out, &result); err != nil {
+		t.Fatalf("unmarshal result: %v", err)
+	}
 	if result["total_rows"].(float64) != 0 {
 		t.Errorf("expected total_rows=0, got %v", result["total_rows"])
 	}
@@ -246,7 +254,9 @@ func TestFilterFields_Array(t *testing.T) {
 		t.Fatalf("FilterFields failed: %v", err)
 	}
 	var result []map[string]any
-	json.Unmarshal(out, &result)
+	if err := json.Unmarshal(out, &result); err != nil {
+		t.Fatalf("unmarshal result: %v", err)
+	}
 	row := result[0]
 	if row["name"] != "job1" {
 		t.Error("expected name to be kept")
@@ -269,7 +279,9 @@ func TestFilterFields_WrappedRows(t *testing.T) {
 		t.Fatalf("FilterFields failed: %v", err)
 	}
 	var result map[string]any
-	json.Unmarshal(out, &result)
+	if err := json.Unmarshal(out, &result); err != nil {
+		t.Fatalf("unmarshal result: %v", err)
+	}
 	if result["total_rows"].(float64) != 1 {
 		t.Error("expected wrapper fields to be preserved")
 	}

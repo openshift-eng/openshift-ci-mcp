@@ -15,7 +15,7 @@ func FilterFields(data []byte, fields string) ([]byte, error) {
 		return data, nil
 	}
 	keep := make(map[string]bool)
-	for _, f := range strings.Split(fields, ",") {
+	for f := range strings.SplitSeq(fields, ",") {
 		if s := strings.TrimSpace(f); s != "" {
 			keep[s] = true
 		}
@@ -64,15 +64,15 @@ func PaginateArray(data []byte, limit, page int) ([]byte, error) {
 	if err := json.Unmarshal(data, &items); err != nil {
 		return nil, err
 	}
+	if limit < 1 {
+		limit = 1
+	}
+	if page < 1 {
+		page = 1
+	}
 	total := len(items)
-	start := (page - 1) * limit
-	if start > total {
-		start = total
-	}
-	end := start + limit
-	if end > total {
-		end = total
-	}
+	start := min((page-1)*limit, total)
+	end := min(start+limit, total)
 	result := struct {
 		Rows      []json.RawMessage `json:"rows"`
 		Page      int               `json:"page"`
@@ -745,22 +745,22 @@ func jsonFields(t reflect.Type) []string {
 // available for use with the `fields` parameter.
 func ToolFieldRegistry() map[string][]string {
 	return map[string][]string{
-		"get_job_report":           jsonFields(reflect.TypeOf(JobReportRow{})),
-		"get_job_runs":             jsonFields(reflect.TypeOf(JobRunRow{})),
-		"get_job_run_summary":      jsonFields(reflect.TypeOf(JobRunSummary{})),
-		"get_ci_test_report":       jsonFields(reflect.TypeOf(TestReportRow{})),
-		"get_test_details":         jsonFields(reflect.TypeOf(TestDetailsResponse{})),
-		"get_recent_test_failures": jsonFields(reflect.TypeOf(TestReportRow{})),
-		"get_component_readiness":  jsonFields(reflect.TypeOf(ComponentReadinessResponse{})),
-		"get_regressions":          jsonFields(reflect.TypeOf(Regression{})),
+		"get_job_report":           jsonFields(reflect.TypeFor[JobReportRow]()),
+		"get_job_runs":             jsonFields(reflect.TypeFor[JobRunRow]()),
+		"get_job_run_summary":      jsonFields(reflect.TypeFor[JobRunSummary]()),
+		"get_ci_test_report":       jsonFields(reflect.TypeFor[TestReportRow]()),
+		"get_test_details":         jsonFields(reflect.TypeFor[TestDetailsResponse]()),
+		"get_recent_test_failures": jsonFields(reflect.TypeFor[TestReportRow]()),
+		"get_component_readiness":  jsonFields(reflect.TypeFor[ComponentReadinessResponse]()),
+		"get_regressions":          jsonFields(reflect.TypeFor[Regression]()),
 		"get_regression_detail":    {"regression", "matching_triages"},
-		"get_payload_status":       jsonFields(reflect.TypeOf(ReleaseTag{})),
-		"get_payload_diff":         jsonFields(reflect.TypeOf(PayloadDiffRow{})),
-		"get_payload_test_failures": jsonFields(reflect.TypeOf(PayloadTestFailure{})),
-		"get_releases":             jsonFields(reflect.TypeOf(ReleasesResponse{})),
+		"get_payload_status":       jsonFields(reflect.TypeFor[ReleaseTag]()),
+		"get_payload_diff":         jsonFields(reflect.TypeFor[PayloadDiffRow]()),
+		"get_payload_test_failures": jsonFields(reflect.TypeFor[PayloadTestFailure]()),
+		"get_releases":             jsonFields(reflect.TypeFor[ReleasesResponse]()),
 		"get_release_health":       {"health", "release_health"},
-		"get_pr_impact":            jsonFields(reflect.TypeOf(PRTestResult{})),
-		"get_release_prs":          jsonFields(reflect.TypeOf(PullRequestRow{})),
-		"search_ci_logs":           jsonFields(reflect.TypeOf(SearchResponse{})),
+		"get_pr_impact":            jsonFields(reflect.TypeFor[PRTestResult]()),
+		"get_release_prs":          jsonFields(reflect.TypeFor[PullRequestRow]()),
+		"search_ci_logs":           jsonFields(reflect.TypeFor[SearchResponse]()),
 	}
 }

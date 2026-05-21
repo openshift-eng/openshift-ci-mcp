@@ -39,8 +39,12 @@ func TestResponseCache_Miss(t *testing.T) {
 		return []byte(`[]`), nil
 	}
 
-	cache.GetOrFetch("key1", fetch)
-	cache.GetOrFetch("key2", fetch)
+	if _, err := cache.GetOrFetch("key1", fetch); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := cache.GetOrFetch("key2", fetch); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if calls != 2 {
 		t.Errorf("expected 2 fetch calls (different keys), got %d", calls)
@@ -55,9 +59,13 @@ func TestResponseCache_Expiry(t *testing.T) {
 		return []byte(`[]`), nil
 	}
 
-	cache.GetOrFetch("key1", fetch)
+	if _, err := cache.GetOrFetch("key1", fetch); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	time.Sleep(5 * time.Millisecond)
-	cache.GetOrFetch("key1", fetch)
+	if _, err := cache.GetOrFetch("key1", fetch); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if calls != 2 {
 		t.Errorf("expected 2 fetch calls (expired entry), got %d", calls)

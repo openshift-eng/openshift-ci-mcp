@@ -101,6 +101,7 @@ func GetPullRequestsHandler(sippy client.Sippy, cache *client.ResponseCache) ser
 		}
 		cacheKey := fmt.Sprintf("pull_requests:%s:%s", release, params["filter"])
 		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			// Sippy returns full list regardless of perPage param
 			raw, err := sippy.Get(ctx, "/api/pull_requests", params)
 			if err != nil {
 				return nil, err

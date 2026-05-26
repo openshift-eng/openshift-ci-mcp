@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -19,6 +20,7 @@ func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithDestructiveHintAnnotation(false),
 			mcp.WithIdempotentHintAnnotation(true),
 			mcp.WithOpenWorldHintAnnotation(true),
+			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
 		GetReleasesHandler(sippy),
 	)
@@ -33,6 +35,10 @@ func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithString("release",
 				mcp.Description("Release version (e.g. '4.18')"),
 			),
+			mcp.WithString("sections",
+				mcp.Description("Comma-separated sections to include: 'health', 'release_health'. Default: both."),
+			),
+			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
 		GetReleaseHealthHandler(sippy),
 	)
@@ -43,6 +49,12 @@ func GetReleasesHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		data, err := sippy.Get(ctx, "/api/releases", nil)
 		if err != nil {
 			return tools.ToolError(err)
+		}
+		if trimmed, err := client.ReshapeJSON[client.ReleasesResponse](data); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
 		}
 		return mcp.NewToolResultText(string(data)), nil
 	}
@@ -57,17 +69,47 @@ func GetReleaseHealthHandler(sippy client.Sippy) server.ToolHandlerFunc {
 
 		params := map[string]string{"release": release}
 
-		healthData, err := sippy.Get(ctx, "/api/health", params)
-		if err != nil {
-			return tools.ToolError(err)
+		wantHealth := true
+		wantReleaseHealth := true
+		if sections := req.GetString("sections", ""); sections != "" {
+			wantHealth = false
+			wantReleaseHealth = false
+			for _, s := range strings.Split(sections, ",") {
+				switch strings.TrimSpace(s) {
+				case "health":
+					wantHealth = true
+				case "release_health":
+					wantReleaseHealth = true
+				}
+			}
 		}
 
-		releaseHealthData, err := sippy.Get(ctx, "/api/releases/health", params)
-		if err != nil {
-			return tools.ToolError(err)
+		parts := make([]string, 0, 2)
+		if wantHealth {
+			healthData, err := sippy.Get(ctx, "/api/health", params)
+			if err != nil {
+				return tools.ToolError(err)
+			}
+			if trimmed, err := client.ReshapeJSON[client.HealthResponse](healthData); err == nil {
+				healthData = trimmed
+			}
+			parts = append(parts, fmt.Sprintf(`"health":%s`, string(healthData)))
+		}
+		if wantReleaseHealth {
+			releaseHealthData, err := sippy.Get(ctx, "/api/releases/health", params)
+			if err != nil {
+				return tools.ToolError(err)
+			}
+			if trimmed, err := client.ReshapeJSON[[]client.ReleaseHealthRow](releaseHealthData); err == nil {
+				releaseHealthData = trimmed
+			}
+			parts = append(parts, fmt.Sprintf(`"release_health":%s`, string(releaseHealthData)))
 		}
 
-		combined := fmt.Sprintf(`{"health":%s,"release_health":%s}`, string(healthData), string(releaseHealthData))
-		return mcp.NewToolResultText(combined), nil
+		data := []byte(fmt.Sprintf(`{%s}`, strings.Join(parts, ",")))
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
+		}
+		return mcp.NewToolResultText(string(data)), nil
 	}
 }

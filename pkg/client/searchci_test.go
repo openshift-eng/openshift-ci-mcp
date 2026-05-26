@@ -31,3 +31,37 @@ func TestSearchCIClient_Search(t *testing.T) {
 		t.Fatal("expected non-empty response")
 	}
 }
+
+func TestSearchCIClient_Search_TypeDefault(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.URL.Query().Get("type"); got != "all" {
+			t.Errorf("expected default type=all, got %q", got)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{}`))
+	}))
+	defer ts.Close()
+
+	c := client.NewSearchCI(ts.URL, ts.Client())
+	_, err := c.Search(context.Background(), "query", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestSearchCIClient_Search_TypePassthrough(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.URL.Query().Get("type"); got != "junit" {
+			t.Errorf("expected type=junit to pass through, got %q", got)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{}`))
+	}))
+	defer ts.Close()
+
+	c := client.NewSearchCI(ts.URL, ts.Client())
+	_, err := c.Search(context.Background(), "query", map[string]string{"type": "junit"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

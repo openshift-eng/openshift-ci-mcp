@@ -12,15 +12,16 @@ import (
 	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
-func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy) {
+func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy, cache *client.ResponseCache) {
 	s.AddTool(mcp.NewTool("get_component_readiness",
-		mcp.WithDescription("Use to get a report on component readiness for the current dev cycle. Can be slow (30+ seconds)"),
+		mcp.WithDescription("Use to get a report on component readiness for the current dev cycle. Can be slow (30+ seconds). Passing a view name avoids an extra API call to discover views."),
 		mcp.WithReadOnlyHintAnnotation(true),
 		mcp.WithDestructiveHintAnnotation(false),
 		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("release", mcp.Description("Release version. Default: current dev release.")),
 		mcp.WithString("view", mcp.Description("Predefined view name. Default: auto-discovers first available view.")),
+		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 	), GetComponentReadinessHandler(sippy))
 
 	s.AddTool(mcp.NewTool("get_regressions",
@@ -32,7 +33,10 @@ func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy) {
 		mcp.WithString("release", mcp.Description("Release version. Default: current dev release")),
 		mcp.WithString("view", mcp.Description("Component Readiness view name")),
 		mcp.WithString("component", mcp.Description("Filter by component name")),
-	), GetRegressionsHandler(sippy))
+		mcp.WithNumber("limit", mcp.Description("Max results per page (default 25)"), mcp.DefaultNumber(25)),
+		mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
+		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
+	), GetRegressionsHandler(sippy, cache))
 
 	s.AddTool(mcp.NewTool("get_regression_detail",
 		mcp.WithDescription("Use when you need details about a regression with triages and Jiras."),
@@ -41,6 +45,7 @@ func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy) {
 		mcp.WithIdempotentHintAnnotation(true),
 		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("regression_id", mcp.Required(), mcp.Description("Regression ID")),
+		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 	), GetRegressionDetailHandler(sippy))
 }
 
@@ -54,9 +59,7 @@ func GetComponentReadinessHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if view == "" {
 			viewsData, err := sippy.Get(ctx, "/api/component_readiness/views", map[string]string{"release": release})
 			if err == nil {
-				var views []struct {
-					Name string `json:"name"`
-				}
+				var views []client.ComponentReadinessView
 				if json.Unmarshal(viewsData, &views) == nil && len(views) > 0 {
 					view = views[0].Name
 				}
@@ -70,26 +73,52 @@ func GetComponentReadinessHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if err != nil {
 			return tools.ToolError(err)
 		}
+		if trimmed, err := client.ReshapeJSON[client.ComponentReadinessResponse](data); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
+		}
 		return mcp.NewToolResultText(string(data)), nil
 	}
 }
 
-func GetRegressionsHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetRegressionsHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
 		if err != nil {
 			return tools.ToolError(err)
 		}
+		limit := req.GetInt("limit", 25)
+		page := req.GetInt("page", 1)
+		view := req.GetString("view", "")
+		component := req.GetString("component", "")
 		params := map[string]string{"release": release}
-		if view := req.GetString("view", ""); view != "" {
+		if view != "" {
 			params["view"] = view
 		}
-		if component := req.GetString("component", ""); component != "" {
+		if component != "" {
 			params["component"] = component
 		}
-		data, err := sippy.Get(ctx, "/api/component_readiness/regressions", params)
+		cacheKey := fmt.Sprintf("regressions:%s:%s:%s", release, view, component)
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/component_readiness/regressions", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[[]client.Regression](raw); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
+		}
+		if paginated, err := client.PaginateArray(data, limit, page); err == nil {
+			data = paginated
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
 		}
 		return mcp.NewToolResultText(string(data)), nil
 	}
@@ -105,11 +134,21 @@ func GetRegressionDetailHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if err != nil {
 			return tools.ToolError(err)
 		}
+		if trimmed, err := client.ReshapeJSON[client.Regression](regressionData); err == nil {
+			regressionData = trimmed
+		}
 		matchesData, err := sippy.Get(ctx, fmt.Sprintf("/api/component_readiness/regressions/%s/matches", id), nil)
 		if err != nil {
 			return tools.ToolError(err)
 		}
+		if trimmed, err := client.ReshapeJSON[[]client.RegressionMatch](matchesData); err == nil {
+			matchesData = trimmed
+		}
 		combined := fmt.Sprintf(`{"regression":%s,"matching_triages":%s}`, string(regressionData), string(matchesData))
-		return mcp.NewToolResultText(combined), nil
+		data := []byte(combined)
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
+		}
+		return mcp.NewToolResultText(string(data)), nil
 	}
 }

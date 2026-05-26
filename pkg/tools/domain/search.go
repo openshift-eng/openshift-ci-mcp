@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -20,6 +21,8 @@ func RegisterSearchTools(s *server.MCPServer, search client.SearchCI) {
 		mcp.WithString("query", mcp.Required(), mcp.Description("Search string (error message, test name, or pattern)")),
 		mcp.WithString("max_age", mcp.Description("Max age (e.g. '7d', '24h')")),
 		mcp.WithString("type", mcp.Description("Type: 'all', 'bug', 'junit' (default: 'all')")),
+		mcp.WithNumber("limit", mcp.Description("Max results to return (default 25)"), mcp.DefaultNumber(25)),
+		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 	), SearchCILogsHandler(search))
 }
 
@@ -29,7 +32,9 @@ func SearchCILogsHandler(search client.SearchCI) server.ToolHandlerFunc {
 		if err != nil {
 			return tools.InvalidParam("query", "required")
 		}
-		params := map[string]string{}
+		params := map[string]string{
+			"maxResults": fmt.Sprintf("%d", req.GetInt("limit", 25)),
+		}
 		if maxAge := req.GetString("max_age", ""); maxAge != "" {
 			params["maxAge"] = maxAge
 		}
@@ -39,6 +44,12 @@ func SearchCILogsHandler(search client.SearchCI) server.ToolHandlerFunc {
 		data, err := search.Search(ctx, query, params)
 		if err != nil {
 			return tools.ToolError(err)
+		}
+		if trimmed, err := client.ReshapeJSON[client.SearchResponse](data); err == nil {
+			data = trimmed
+		}
+		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
+			data = filtered
 		}
 		return mcp.NewToolResultText(string(data)), nil
 	}

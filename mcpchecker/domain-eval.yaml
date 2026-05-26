@@ -1,12 +1,12 @@
 kind: Eval
 metadata:
-  name: "openshift-ci-mcp"
+  name: "openshift-ci-mcp-domain"
 
 config:
   agent:
     type: "builtin.claude-code"
 
-  mcpConfigFile: mcp-config.yaml
+  mcpConfigFile: domain-mcp-config.yaml
 
   llmJudge:
     ref:
@@ -25,9 +25,6 @@ config:
         toolsUsed:
           - server: openshift-ci
             toolPattern: "get_release.*|get_variants"
-        toolsNotUsed:
-          - server: openshift-ci
-            toolPattern: "sippy_api|release_controller_api|search_ci_api"
         minToolCalls: 1
         maxToolCalls: 5
 
@@ -39,9 +36,6 @@ config:
         toolsUsed:
           - server: openshift-ci
             toolPattern: "get_job_.*"
-        toolsNotUsed:
-          - server: openshift-ci
-            toolPattern: "sippy_api|release_controller_api|search_ci_api"
         minToolCalls: 1
         maxToolCalls: 5
 
@@ -53,11 +47,8 @@ config:
         toolsUsed:
           - server: openshift-ci
             toolPattern: "get_ci_test_report|get_test_details|get_recent_test_failures"
-        toolsNotUsed:
-          - server: openshift-ci
-            toolPattern: "sippy_api|release_controller_api|search_ci_api"
         minToolCalls: 1
-        maxToolCalls: 5
+        maxToolCalls: 7
 
     # Payload tools (get_component_readiness, get_payload_status, etc.)
     - glob: tasks/*.yaml
@@ -67,11 +58,8 @@ config:
         toolsUsed:
           - server: openshift-ci
             toolPattern: "get_component_readiness|get_regressions|get_regression_detail|get_payload_.*"
-        toolsNotUsed:
-          - server: openshift-ci
-            toolPattern: "sippy_api|release_controller_api|search_ci_api"
         minToolCalls: 1
-        maxToolCalls: 5
+        maxToolCalls: 7
 
     # Pull request tools (get_release_prs, get_pr_impact)
     - glob: tasks/*.yaml
@@ -81,9 +69,6 @@ config:
         toolsUsed:
           - server: openshift-ci
             toolPattern: "get_release_prs|get_pr_impact"
-        toolsNotUsed:
-          - server: openshift-ci
-            toolPattern: "sippy_api|release_controller_api|search_ci_api"
         minToolCalls: 1
         maxToolCalls: 5
 
@@ -108,17 +93,3 @@ config:
             name: get_job_report
         minToolCalls: 3
         maxToolCalls: 5
-
-    # Proxy passthrough (sippy_api)
-    - glob: tasks/*.yaml
-      labelSelector:
-        suite: proxies
-      assertions:
-        toolsUsed:
-          - server: openshift-ci
-            tool: sippy_api
-        toolsNotUsed:
-          - server: openshift-ci
-            toolPattern: "get_.*"
-        minToolCalls: 1
-        maxToolCalls: 3

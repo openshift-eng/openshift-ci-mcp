@@ -40,7 +40,7 @@ Add a new domain tool to the MCP server. Follow the established patterns:
    release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
    ```
 
-7. **Write tests** using `newMockSippy()` and `newCapturingSippy()` from `testhelpers_test.go`. Mock provides canned responses; CapturingSippy lets you assert on parameters sent upstream.
+7. **Write tests** using `newMockSippy()` from `testhelpers_test.go` for canned responses. Use `&capturingSippy{}` directly to assert on parameters sent upstream.
 
 8. **Verify**: Run `go test ./pkg/tools/domain/... -v` and `go vet ./...`.
 

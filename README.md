@@ -18,7 +18,7 @@ MCP server providing read-only access to OpenShift CI data. Query Sippy, Release
 | `get_release_health` | `core` | Use to get health data for a specific release such as success rates, variant summary, and payload acceptance. |
 | `get_releases` | `core` | Use to get OpenShift releases with availability and dev cycle dates |
 | `get_variants` | `core` | Use to list variants and their possible values (arch, topology, platform, network, etc.). |
-| `get_component_readiness` | `payload` | Use to get a report on component readiness for the current dev cycle. Can be slow (30+ seconds) |
+| `get_component_readiness` | `payload` | Use to get a report on component readiness for the current dev cycle. Can be slow (30+ seconds). Passing a view name avoids an extra API call to discover views. |
 | `get_payload_diff` | `payload` | Use to list pull request changes between payload tags. |
 | `get_payload_status` | `payload` | Use to get recent payload acceptance status from the Release Controller. |
 | `get_payload_test_failures` | `payload` | Use to get test failures for payload job runs |
@@ -154,7 +154,7 @@ bin/openshift-ci-mcp --tools core,payload,jobs,tests,prs,search,proxies
 <!-- BEGIN TOOL GROUPS -->
 | Group | Description | Tools |
 | ----- | ----------- | ----- |
-| `core` | Release metadata and variant dimensions | `get_releases`, `get_release_health`, `get_variants` |
+| `core` | Release metadata and variant dimensions | `get_releases`, `get_release_health`, `get_variants`, `get_tool_fields` |
 | `payload` | Component readiness, regressions, and payload acceptance | `get_component_readiness`, `get_regressions`, `get_regression_detail`, `get_payload_status`, `get_payload_diff`, `get_payload_test_failures` |
 | `jobs` | CI job pass rates and run history | `get_job_report`, `get_job_runs`, `get_job_run_summary` |
 | `tests` | Test pass/fail/flake rates and recent failures | `get_ci_test_report`, `get_test_details`, `get_recent_test_failures` |

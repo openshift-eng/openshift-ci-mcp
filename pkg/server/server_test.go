@@ -15,8 +15,8 @@ func TestNew_ToolGroupGating(t *testing.T) {
 		{
 			name:    "default config enables all domain tools",
 			tools:   DefaultConfig().Tools,
-			wantLen: 18,
-			wantHas: []string{"get_releases", "get_job_report", "get_ci_test_report", "get_component_readiness", "get_release_prs", "search_ci_logs"},
+			wantLen: 19,
+			wantHas: []string{"get_releases", "get_job_report", "get_ci_test_report", "get_component_readiness", "get_release_prs", "search_ci_logs", "get_tool_fields"},
 			wantNot: []string{"sippy_api", "release_controller_api", "search_ci_api"},
 		},
 		{
@@ -27,8 +27,8 @@ func TestNew_ToolGroupGating(t *testing.T) {
 		{
 			name:    "core only",
 			tools:   map[string]bool{"core": true},
-			wantLen: 3,
-			wantHas: []string{"get_releases", "get_release_health", "get_variants"},
+			wantLen: 4,
+			wantHas: []string{"get_releases", "get_release_health", "get_variants", "get_tool_fields"},
 			wantNot: []string{"get_job_report", "get_component_readiness"},
 		},
 		{
@@ -85,20 +85,20 @@ func TestNew_ToolGroupGating(t *testing.T) {
 		{
 			name:    "group plus individual tool from another group",
 			tools:   map[string]bool{"core": true, "sippy_api": true},
-			wantLen: 4,
-			wantHas: []string{"get_releases", "get_variants", "sippy_api"},
+			wantLen: 5,
+			wantHas: []string{"get_releases", "get_variants", "get_tool_fields", "sippy_api"},
 			wantNot: []string{"release_controller_api"},
 		},
 		{
 			name:    "core plus proxies",
 			tools:   map[string]bool{"core": true, "proxies": true},
-			wantLen: 6,
+			wantLen: 7,
 			wantHas: []string{"get_releases", "sippy_api"},
 		},
 		{
 			name:    "all groups",
 			tools:   map[string]bool{"core": true, "payload": true, "jobs": true, "tests": true, "prs": true, "search": true, "proxies": true},
-			wantLen: 21,
+			wantLen: 22,
 		},
 	}
 

@@ -22,7 +22,7 @@ func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy, cache *clie
 		mcp.WithString("release", mcp.Description("Release version. Default: current dev release.")),
 		mcp.WithString("view", mcp.Description("Predefined view name. Default: auto-discovers first available view.")),
 		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
-	), GetComponentReadinessHandler(sippy))
+	), GetComponentReadinessHandler(sippy, cache))
 
 	s.AddTool(mcp.NewTool("get_regressions",
 		mcp.WithDescription("Use to get tests performing significantly worse than the previous release"),
@@ -46,10 +46,10 @@ func RegisterComponentTools(s *server.MCPServer, sippy client.Sippy, cache *clie
 		mcp.WithOpenWorldHintAnnotation(true),
 		mcp.WithString("regression_id", mcp.Required(), mcp.Description("Regression ID")),
 		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
-	), GetRegressionDetailHandler(sippy))
+	), GetRegressionDetailHandler(sippy, cache))
 }
 
-func GetComponentReadinessHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetComponentReadinessHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
 		if err != nil {
@@ -69,12 +69,19 @@ func GetComponentReadinessHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if view != "" {
 			params["view"] = view
 		}
-		data, err := sippy.Get(ctx, "/api/component_readiness", params)
+		cacheKey := fmt.Sprintf("component_readiness:%s:%s", release, view)
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/component_readiness", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[client.ComponentReadinessResponse](raw); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeJSON[client.ComponentReadinessResponse](data); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
@@ -124,28 +131,33 @@ func GetRegressionsHandler(sippy client.Sippy, cache *client.ResponseCache) serv
 	}
 }
 
-func GetRegressionDetailHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetRegressionDetailHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		id, err := req.RequireString("regression_id")
 		if err != nil {
 			return tools.InvalidParam("regression_id", "required")
 		}
-		regressionData, err := sippy.Get(ctx, fmt.Sprintf("/api/component_readiness/regressions/%s", id), nil)
+		cacheKey := fmt.Sprintf("regression_detail:%s", id)
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			regressionData, err := sippy.Get(ctx, fmt.Sprintf("/api/component_readiness/regressions/%s", id), nil)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[client.Regression](regressionData); err == nil {
+				regressionData = trimmed
+			}
+			matchesData, err := sippy.Get(ctx, fmt.Sprintf("/api/component_readiness/regressions/%s/matches", id), nil)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[[]client.RegressionMatch](matchesData); err == nil {
+				matchesData = trimmed
+			}
+			return []byte(fmt.Sprintf(`{"regression":%s,"matching_triages":%s}`, string(regressionData), string(matchesData))), nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
 		}
-		if trimmed, err := client.ReshapeJSON[client.Regression](regressionData); err == nil {
-			regressionData = trimmed
-		}
-		matchesData, err := sippy.Get(ctx, fmt.Sprintf("/api/component_readiness/regressions/%s/matches", id), nil)
-		if err != nil {
-			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeJSON[[]client.RegressionMatch](matchesData); err == nil {
-			matchesData = trimmed
-		}
-		combined := fmt.Sprintf(`{"regression":%s,"matching_triages":%s}`, string(regressionData), string(matchesData))
-		data := []byte(combined)
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
 		}

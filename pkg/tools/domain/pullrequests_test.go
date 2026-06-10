@@ -12,7 +12,7 @@ func TestGetPullRequestImpact(t *testing.T) {
 	mock := newMockSippy(map[string][]byte{
 		"/api/pull_requests/test_results": []byte(`[{"test_name":"test-1","result":"Failed"}]`),
 	})
-	handler := domain.GetPullRequestImpactHandler(mock)
+	handler := domain.GetPullRequestImpactHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"org": "openshift", "repo": "kubernetes", "pr_number": "12345"}
 	result, err := handler(context.Background(), req)
@@ -32,7 +32,7 @@ func TestGetPullRequestImpact_Pagination(t *testing.T) {
 			capturedParams = params
 		},
 	}
-	handler := domain.GetPullRequestImpactHandler(mock)
+	handler := domain.GetPullRequestImpactHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"org":       "openshift",

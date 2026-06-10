@@ -12,7 +12,7 @@ import (
 	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
-func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
+func RegisterTestTools(s *server.MCPServer, sippy client.Sippy, cache *client.ResponseCache) {
 	s.AddTool(mcp.NewTool("get_ci_test_report",
 		mcp.WithDescription("Use to get pass/fail/flake rates for tests with optional filtering"),
 		mcp.WithReadOnlyHintAnnotation(true),
@@ -30,7 +30,7 @@ func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
 		mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
 		mcp.WithBoolean("include_metrics", mcp.Description("Include detailed metrics sub-object with previous/derived stats (default: false)")),
 		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
-	), GetTestReportHandler(sippy))
+	), GetTestReportHandler(sippy, cache))
 
 	s.AddTool(mcp.NewTool("get_test_details",
 		mcp.WithDescription("Use to get pass rates broken down by variant and by job."),
@@ -45,7 +45,7 @@ func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
 		mcp.WithString("platform", mcp.Description("Platform: aws, azure, gcp, metal, vsphere, rosa, etc.")),
 		mcp.WithString("network", mcp.Description("Network: ovn, sdn, cilium")),
 		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
-	), GetTestDetailsHandler(sippy))
+	), GetTestDetailsHandler(sippy, cache))
 
 	s.AddTool(mcp.NewTool("get_recent_test_failures",
 		mcp.WithDescription("Tests that recently started failing, useful for detecting new regressions."),
@@ -61,15 +61,16 @@ func RegisterTestTools(s *server.MCPServer, sippy client.Sippy) {
 		mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
 		mcp.WithBoolean("include_metrics", mcp.Description("Include detailed metrics sub-object with previous/derived stats (default: false)")),
 		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
-	), GetRecentTestFailuresHandler(sippy))
+	), GetRecentTestFailuresHandler(sippy, cache))
 }
 
-func GetTestReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetTestReportHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
 		if err != nil {
 			return tools.ToolError(err)
 		}
+		includeMetrics := req.GetBool("include_metrics", false)
 		params := map[string]string{
 			"release": release,
 			"perPage": fmt.Sprintf("%d", req.GetInt("limit", 25)),
@@ -85,12 +86,19 @@ func GetTestReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if err := filter.MergeInto(params, vp); err != nil {
 			return tools.ToolError(err)
 		}
-		data, err := sippy.Get(ctx, "/api/tests", params)
+		cacheKey := fmt.Sprintf("test_report:%s:%v:%s:%s:%s", release, includeMetrics, params["perPage"], params["page"], params["filter"])
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/tests", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeTestReport(raw, includeMetrics); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeTestReport(data, req.GetBool("include_metrics", false)); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
@@ -99,7 +107,7 @@ func GetTestReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
 	}
 }
 
-func GetTestDetailsHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetTestDetailsHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
 		if err != nil {
@@ -114,12 +122,19 @@ func GetTestDetailsHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if err := filter.MergeInto(params, vp); err != nil {
 			return tools.ToolError(err)
 		}
-		data, err := sippy.Get(ctx, "/api/tests/details", params)
+		cacheKey := fmt.Sprintf("test_details:%s:%s:%s", release, testName, params["filter"])
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/tests/details", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[client.TestDetailsResponse](raw); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeJSON[client.TestDetailsResponse](data); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
@@ -128,15 +143,17 @@ func GetTestDetailsHandler(sippy client.Sippy) server.ToolHandlerFunc {
 	}
 }
 
-func GetRecentTestFailuresHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetRecentTestFailuresHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
 		if err != nil {
 			return tools.ToolError(err)
 		}
+		includeMetrics := req.GetBool("include_metrics", false)
+		period := req.GetString("period", "168h")
 		params := map[string]string{
 			"release": release,
-			"period":  req.GetString("period", "168h"),
+			"period":  period,
 			"perPage": fmt.Sprintf("%d", req.GetInt("limit", 25)),
 			"page":    fmt.Sprintf("%d", req.GetInt("page", 1)),
 		}
@@ -146,12 +163,19 @@ func GetRecentTestFailuresHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		if component := req.GetString("component", ""); component != "" {
 			filter.MergeItemInto(params, filter.Item{ColumnField: "jira_component", OperatorValue: "equals", Value: component})
 		}
-		data, err := sippy.Get(ctx, "/api/tests/recent_failures", params)
+		cacheKey := fmt.Sprintf("recent_test_failures:%s:%s:%v:%s:%s:%s", release, period, includeMetrics, params["perPage"], params["page"], params["filter"])
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/tests/recent_failures", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeTestReport(raw, includeMetrics); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeTestReport(data, req.GetBool("include_metrics", false)); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered

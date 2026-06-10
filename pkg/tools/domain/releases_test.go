@@ -15,7 +15,7 @@ func TestGetReleases(t *testing.T) {
 		"/api/releases": []byte(`{"releases":["4.19","4.18"],"dates":{"4.19":{},"4.18":{"ga":"2025-06-15T00:00:00Z"}}}`),
 	})
 
-	handler := domain.GetReleasesHandler(mock)
+	handler := domain.GetReleasesHandler(mock, nil)
 	result, err := handler(context.Background(), mcp.CallToolRequest{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -34,7 +34,7 @@ func TestGetReleaseHealth(t *testing.T) {
 		"/api/releases/health": []byte(`[{"release_tag":"4.18.0","last_phase":"Accepted"}]`),
 	})
 
-	handler := domain.GetReleaseHealthHandler(mock)
+	handler := domain.GetReleaseHealthHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18"}
 	result, err := handler(context.Background(), req)
@@ -59,7 +59,7 @@ func TestGetReleaseHealth_SectionFiltering(t *testing.T) {
 		},
 	}
 
-	handler := domain.GetReleaseHealthHandler(mock)
+	handler := domain.GetReleaseHealthHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18", "sections": "health"}
 	result, err := handler(context.Background(), req)

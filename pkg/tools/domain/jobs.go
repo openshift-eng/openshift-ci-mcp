@@ -12,7 +12,7 @@ import (
 	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
-func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
+func RegisterJobTools(s *server.MCPServer, sippy client.Sippy, cache *client.ResponseCache) {
 	s.AddTool(
 		mcp.NewTool("get_job_report",
 			mcp.WithDescription("Use to get CI job pass rates with filtering and pagination"),
@@ -34,7 +34,7 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
 			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
-		GetJobReportHandler(sippy),
+		GetJobReportHandler(sippy, cache),
 	)
 
 	s.AddTool(
@@ -50,7 +50,7 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
 			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
-		GetJobRunsHandler(sippy),
+		GetJobRunsHandler(sippy, cache),
 	)
 
 	s.AddTool(
@@ -63,11 +63,11 @@ func RegisterJobTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithString("prow_job_run_id", mcp.Required(), mcp.Description("Prow job run ID")),
 			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
-		GetJobRunSummaryHandler(sippy),
+		GetJobRunSummaryHandler(sippy, cache),
 	)
 }
 
-func GetJobReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetJobReportHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
 		if err != nil {
@@ -109,12 +109,19 @@ func GetJobReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
 			})
 		}
 
-		data, err := sippy.Get(ctx, "/api/jobs", params)
+		cacheKey := fmt.Sprintf("job_report:%s:%s:%s:%s:%s:%s", release, params["sortField"], params["sort"], params["perPage"], params["page"], params["filter"])
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/jobs", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[[]client.JobReportRow](raw); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeJSON[[]client.JobReportRow](data); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
@@ -123,7 +130,7 @@ func GetJobReportHandler(sippy client.Sippy) server.ToolHandlerFunc {
 	}
 }
 
-func GetJobRunsHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetJobRunsHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
 		if err != nil {
@@ -142,12 +149,19 @@ func GetJobRunsHandler(sippy client.Sippy) server.ToolHandlerFunc {
 			"filter":  fmt.Sprintf(`{"items":[{"columnField":"name","operatorValue":"equals","value":%q}],"linkOperator":"and"}`, jobName),
 		}
 
-		data, err := sippy.Get(ctx, "/api/jobs/runs", params)
+		cacheKey := fmt.Sprintf("job_runs:%s:%s:%s:%s", jobName, release, params["perPage"], params["page"])
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/jobs/runs", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[client.JobRunsResponse](raw); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeJSON[client.JobRunsResponse](data); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
@@ -156,7 +170,7 @@ func GetJobRunsHandler(sippy client.Sippy) server.ToolHandlerFunc {
 	}
 }
 
-func GetJobRunSummaryHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetJobRunSummaryHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		runID, err := req.RequireString("prow_job_run_id")
 		if err != nil {
@@ -164,12 +178,19 @@ func GetJobRunSummaryHandler(sippy client.Sippy) server.ToolHandlerFunc {
 		}
 
 		params := map[string]string{"prow_job_run_id": runID}
-		data, err := sippy.Get(ctx, "/api/job/run/summary", params)
+		cacheKey := fmt.Sprintf("job_run_summary:%s", runID)
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/job/run/summary", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[client.JobRunSummary](raw); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeJSON[client.JobRunSummary](data); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered

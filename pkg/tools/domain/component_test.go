@@ -14,7 +14,7 @@ func TestGetComponentReadiness(t *testing.T) {
 		"/api/component_readiness":       []byte(`{"rows":[{"component":"etcd"}]}`),
 		"/api/component_readiness/views": []byte(`[{"name":"main","params":{}}]`),
 	})
-	handler := domain.GetComponentReadinessHandler(mock)
+	handler := domain.GetComponentReadinessHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18"}
 	result, err := handler(context.Background(), req)
@@ -78,7 +78,7 @@ func TestGetRegressionDetail(t *testing.T) {
 		"/api/component_readiness/regressions/42":         []byte(`{"id":42,"test_name":"test-1"}`),
 		"/api/component_readiness/regressions/42/matches": []byte(`[{"id":1,"url":"https://issues.redhat.com/browse/OCPBUGS-123"}]`),
 	})
-	handler := domain.GetRegressionDetailHandler(mock)
+	handler := domain.GetRegressionDetailHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"regression_id": "42"}
 	result, err := handler(context.Background(), req)

@@ -32,7 +32,7 @@ func TestGetPayloadStatus(t *testing.T) {
 	rc := &mockReleaseController{responses: map[string][]byte{
 		"amd64:/api/v1/releasestream/4.18.0-0.nightly/tags": []byte(`{"name":"4.18.0-0.nightly","tags":[{"name":"4.18.0-0.nightly-2025-01-01","phase":"Accepted"}]}`),
 	}}
-	handler := domain.GetPayloadStatusHandler(rc)
+	handler := domain.GetPayloadStatusHandler(rc, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18", "stream": "nightly"}
 	result, err := handler(context.Background(), req)
@@ -64,7 +64,7 @@ func TestGetPayloadStatus_Truncation(t *testing.T) {
 	rc := &mockReleaseController{responses: map[string][]byte{
 		"amd64:/api/v1/releasestream/4.18.0-0.nightly/tags": []byte(`{"name":"4.18.0-0.nightly","tags":[{"name":"tag1"},{"name":"tag2"},{"name":"tag3"},{"name":"tag4"},{"name":"tag5"}]}`),
 	}}
-	handler := domain.GetPayloadStatusHandler(rc)
+	handler := domain.GetPayloadStatusHandler(rc, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18", "limit": float64(2)}
 	result, err := handler(context.Background(), req)

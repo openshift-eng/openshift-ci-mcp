@@ -14,7 +14,7 @@ func TestGetVariants(t *testing.T) {
 		"/api/job_variants": []byte(`{"variants":{"Architecture":["amd64","arm64"],"Topology":["ha","single"]}}`),
 	})
 
-	handler := domain.GetVariantsHandler(mock)
+	handler := domain.GetVariantsHandler(mock, nil)
 	result, err := handler(context.Background(), mcp.CallToolRequest{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

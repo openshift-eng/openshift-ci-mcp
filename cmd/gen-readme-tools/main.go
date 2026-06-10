@@ -39,10 +39,10 @@ func buildDomainServer() *mcpserver.MCPServer {
 	var rc nopRC
 	var search nopSearch
 
-	domain.RegisterReleaseTools(s, sippy)
-	domain.RegisterVariantTools(s, sippy)
-	domain.RegisterJobTools(s, sippy)
-	domain.RegisterTestTools(s, sippy)
+	domain.RegisterReleaseTools(s, sippy, nil)
+	domain.RegisterVariantTools(s, sippy, nil)
+	domain.RegisterJobTools(s, sippy, nil)
+	domain.RegisterTestTools(s, sippy, nil)
 	domain.RegisterComponentTools(s, sippy, nil)
 	domain.RegisterPayloadTools(s, sippy, rc, nil)
 	domain.RegisterSearchTools(s, search)

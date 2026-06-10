@@ -143,13 +143,13 @@ func New(cfg Config) *server.MCPServer {
 	)
 
 	registrations := []toolRegistration{
-		{"core", []string{"get_releases", "get_release_health"}, func() { domain.RegisterReleaseTools(s, sippy) }},
-		{"core", []string{"get_variants"}, func() { domain.RegisterVariantTools(s, sippy) }},
+		{"core", []string{"get_releases", "get_release_health"}, func() { domain.RegisterReleaseTools(s, sippy, cache) }},
+		{"core", []string{"get_variants"}, func() { domain.RegisterVariantTools(s, sippy, cache) }},
 		{"core", []string{"get_tool_fields"}, func() { domain.RegisterFieldTools(s) }},
 		{"payload", []string{"get_component_readiness", "get_regressions", "get_regression_detail"}, func() { domain.RegisterComponentTools(s, sippy, cache) }},
 		{"payload", []string{"get_payload_status", "get_payload_diff", "get_payload_test_failures"}, func() { domain.RegisterPayloadTools(s, sippy, rc, cache) }},
-		{"jobs", []string{"get_job_report", "get_job_runs", "get_job_run_summary"}, func() { domain.RegisterJobTools(s, sippy) }},
-		{"tests", []string{"get_ci_test_report", "get_test_details", "get_recent_test_failures"}, func() { domain.RegisterTestTools(s, sippy) }},
+		{"jobs", []string{"get_job_report", "get_job_runs", "get_job_run_summary"}, func() { domain.RegisterJobTools(s, sippy, cache) }},
+		{"tests", []string{"get_ci_test_report", "get_test_details", "get_recent_test_failures"}, func() { domain.RegisterTestTools(s, sippy, cache) }},
 		{"prs", []string{"get_release_prs", "get_pr_impact"}, func() { domain.RegisterPullRequestTools(s, sippy, cache) }},
 		{"search", []string{"search_ci_logs"}, func() { domain.RegisterSearchTools(s, search) }},
 		{"proxies", []string{"sippy_api"}, func() { proxy.RegisterSippyProxy(s, sippy) }},

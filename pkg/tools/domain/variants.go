@@ -10,7 +10,7 @@ import (
 	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
-func RegisterVariantTools(s *server.MCPServer, sippy client.Sippy) {
+func RegisterVariantTools(s *server.MCPServer, sippy client.Sippy, cache *client.ResponseCache) {
 	s.AddTool(
 		mcp.NewTool("get_variants",
 			mcp.WithDescription("Use to list variants and their possible values (arch, topology, platform, network, etc.)."),
@@ -18,13 +18,15 @@ func RegisterVariantTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithDestructiveHintAnnotation(false),
 			mcp.WithIdempotentHintAnnotation(true),
 		),
-		GetVariantsHandler(sippy),
+		GetVariantsHandler(sippy, cache),
 	)
 }
 
-func GetVariantsHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetVariantsHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		data, err := sippy.Get(ctx, "/api/job_variants", nil)
+		data, err := cache.GetOrFetch("variants", func() ([]byte, error) {
+			return sippy.Get(ctx, "/api/job_variants", nil)
+		})
 		if err != nil {
 			return tools.ToolError(err)
 		}

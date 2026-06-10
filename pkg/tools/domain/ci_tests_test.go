@@ -13,7 +13,7 @@ func TestGetTestReport(t *testing.T) {
 	mock := newMockSippy(map[string][]byte{
 		"/api/tests": []byte(`[{"name":"test-1","current_pass_percentage":99.0}]`),
 	})
-	handler := domain.GetTestReportHandler(mock)
+	handler := domain.GetTestReportHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18"}
 	result, err := handler(context.Background(), req)
@@ -29,7 +29,7 @@ func TestGetTestDetails(t *testing.T) {
 	mock := newMockSippy(map[string][]byte{
 		"/api/tests/details": []byte(`{"name":"test-1"}`),
 	})
-	handler := domain.GetTestDetailsHandler(mock)
+	handler := domain.GetTestDetailsHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18", "test_name": "[sig-network] pods should work"}
 	result, err := handler(context.Background(), req)
@@ -49,7 +49,7 @@ func TestGetTestDetails_VariantFiltering(t *testing.T) {
 			capturedParams = params
 		},
 	}
-	handler := domain.GetTestDetailsHandler(mock)
+	handler := domain.GetTestDetailsHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"release":   "4.18",
@@ -75,7 +75,7 @@ func TestGetTestDetails_VariantFiltering(t *testing.T) {
 func TestGetTestReport_ResponseTrimming(t *testing.T) {
 	mockData := `[{"name":"test-1","id":42,"jira_component_id":99,"current_pass_percentage":95.0,"current_runs":100,"current_successes":95,"current_failures":3,"current_flakes":2,"current_failure_percentage":3.0,"net_improvement":5.0,"net_failure_improvement":2.0,"open_bugs":1}]`
 	mock := newMockSippy(map[string][]byte{"/api/tests": []byte(mockData)})
-	handler := domain.GetTestReportHandler(mock)
+	handler := domain.GetTestReportHandler(mock, nil)
 
 	t.Run("metrics excluded by default", func(t *testing.T) {
 		req := mcp.CallToolRequest{}
@@ -125,7 +125,7 @@ func TestGetRecentTestFailures(t *testing.T) {
 	mock := newMockSippy(map[string][]byte{
 		"/api/tests/recent_failures": []byte(`[{"name":"test-1","current_pass_percentage":50.0,"current_runs":10,"current_successes":5,"current_failures":3,"current_flakes":2,"net_improvement":-5.0,"open_bugs":0}]`),
 	})
-	handler := domain.GetRecentTestFailuresHandler(mock)
+	handler := domain.GetRecentTestFailuresHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18"}
 	result, err := handler(context.Background(), req)
@@ -145,7 +145,7 @@ func TestGetRecentTestFailures_PaginationAndFilters(t *testing.T) {
 			capturedParams = params
 		},
 	}
-	handler := domain.GetRecentTestFailuresHandler(mock)
+	handler := domain.GetRecentTestFailuresHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"release":   "4.18",

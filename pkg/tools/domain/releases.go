@@ -12,7 +12,7 @@ import (
 	"github.com/openshift-eng/openshift-ci-mcp/pkg/tools"
 )
 
-func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy) {
+func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy, cache *client.ResponseCache) {
 	s.AddTool(
 		mcp.NewTool("get_releases",
 			mcp.WithDescription("Use to get OpenShift releases with availability and dev cycle dates"),
@@ -22,7 +22,7 @@ func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy) {
 			mcp.WithOpenWorldHintAnnotation(true),
 			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
-		GetReleasesHandler(sippy),
+		GetReleasesHandler(sippy, cache),
 	)
 
 	s.AddTool(
@@ -40,18 +40,24 @@ func RegisterReleaseTools(s *server.MCPServer, sippy client.Sippy) {
 			),
 			mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
 		),
-		GetReleaseHealthHandler(sippy),
+		GetReleaseHealthHandler(sippy, cache),
 	)
 }
 
-func GetReleasesHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetReleasesHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		data, err := sippy.Get(ctx, "/api/releases", nil)
+		data, err := cache.GetOrFetch("releases", func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/releases", nil)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[client.ReleasesResponse](raw); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeJSON[client.ReleasesResponse](data); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
@@ -60,14 +66,12 @@ func GetReleasesHandler(sippy client.Sippy) server.ToolHandlerFunc {
 	}
 }
 
-func GetReleaseHealthHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetReleaseHealthHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := tools.ResolveRelease(ctx, sippy, req.GetString("release", ""))
 		if err != nil {
 			return tools.ToolError(err)
 		}
-
-		params := map[string]string{"release": release}
 
 		wantHealth := true
 		wantReleaseHealth := true
@@ -84,29 +88,35 @@ func GetReleaseHealthHandler(sippy client.Sippy) server.ToolHandlerFunc {
 			}
 		}
 
-		parts := make([]string, 0, 2)
-		if wantHealth {
-			healthData, err := sippy.Get(ctx, "/api/health", params)
-			if err != nil {
-				return tools.ToolError(err)
+		cacheKey := fmt.Sprintf("release_health:%s:%v:%v", release, wantHealth, wantReleaseHealth)
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			params := map[string]string{"release": release}
+			parts := make([]string, 0, 2)
+			if wantHealth {
+				healthData, err := sippy.Get(ctx, "/api/health", params)
+				if err != nil {
+					return nil, err
+				}
+				if trimmed, err := client.ReshapeJSON[client.HealthResponse](healthData); err == nil {
+					healthData = trimmed
+				}
+				parts = append(parts, fmt.Sprintf(`"health":%s`, string(healthData)))
 			}
-			if trimmed, err := client.ReshapeJSON[client.HealthResponse](healthData); err == nil {
-				healthData = trimmed
+			if wantReleaseHealth {
+				releaseHealthData, err := sippy.Get(ctx, "/api/releases/health", params)
+				if err != nil {
+					return nil, err
+				}
+				if trimmed, err := client.ReshapeJSON[[]client.ReleaseHealthRow](releaseHealthData); err == nil {
+					releaseHealthData = trimmed
+				}
+				parts = append(parts, fmt.Sprintf(`"release_health":%s`, string(releaseHealthData)))
 			}
-			parts = append(parts, fmt.Sprintf(`"health":%s`, string(healthData)))
+			return []byte(fmt.Sprintf(`{%s}`, strings.Join(parts, ","))), nil
+		})
+		if err != nil {
+			return tools.ToolError(err)
 		}
-		if wantReleaseHealth {
-			releaseHealthData, err := sippy.Get(ctx, "/api/releases/health", params)
-			if err != nil {
-				return tools.ToolError(err)
-			}
-			if trimmed, err := client.ReshapeJSON[[]client.ReleaseHealthRow](releaseHealthData); err == nil {
-				releaseHealthData = trimmed
-			}
-			parts = append(parts, fmt.Sprintf(`"release_health":%s`, string(releaseHealthData)))
-		}
-
-		data := []byte(fmt.Sprintf(`{%s}`, strings.Join(parts, ",")))
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
 		}

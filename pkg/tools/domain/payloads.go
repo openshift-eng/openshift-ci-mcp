@@ -25,7 +25,7 @@ func RegisterPayloadTools(s *server.MCPServer, sippy client.Sippy, rc client.Rel
 		mcp.WithString("stream", mcp.Description("Stream: 'nightly' or 'ci' (default: nightly)"), mcp.DefaultString("nightly")),
 		mcp.WithNumber("limit", mcp.Description("Max payload tags to return (default 10)"), mcp.DefaultNumber(10)),
 		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
-	), GetPayloadStatusHandler(rc))
+	), GetPayloadStatusHandler(rc, cache))
 
 	s.AddTool(mcp.NewTool("get_payload_diff",
 		mcp.WithDescription("Use to list pull request changes between payload tags."),
@@ -56,7 +56,7 @@ func RegisterPayloadTools(s *server.MCPServer, sippy client.Sippy, rc client.Rel
 	), GetPayloadTestFailuresHandler(sippy, cache))
 }
 
-func GetPayloadStatusHandler(rc client.ReleaseController) server.ToolHandlerFunc {
+func GetPayloadStatusHandler(rc client.ReleaseController, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		release, err := req.RequireString("release")
 		if err != nil {
@@ -70,7 +70,10 @@ func GetPayloadStatusHandler(rc client.ReleaseController) server.ToolHandlerFunc
 			streamName = fmt.Sprintf("%s.0-0.%s-%s", release, stream, arch)
 		}
 		path := fmt.Sprintf("/api/v1/releasestream/%s/tags", streamName)
-		data, err := rc.GetForArch(ctx, arch, path, nil)
+		cacheKey := fmt.Sprintf("payload_status:%s:%s:%s", release, arch, stream)
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			return rc.GetForArch(ctx, arch, path, nil)
+		})
 		if err != nil {
 			return tools.ToolError(err)
 		}

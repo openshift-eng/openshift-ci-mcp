@@ -15,7 +15,7 @@ func TestGetJobReport(t *testing.T) {
 		"/api/jobs": []byte(`{"rows":[{"name":"periodic-ci-e2e-aws","current_pass_percentage":95.5}],"total_rows":1}`),
 	})
 
-	handler := domain.GetJobReportHandler(mock)
+	handler := domain.GetJobReportHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"release": "4.18",
@@ -39,7 +39,7 @@ func TestGetJobReport_VariantFiltering(t *testing.T) {
 		},
 	}
 
-	handler := domain.GetJobReportHandler(mock)
+	handler := domain.GetJobReportHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"release":  "4.18",
@@ -70,7 +70,7 @@ func TestGetJobReport_SortParams(t *testing.T) {
 		},
 	}
 
-	handler := domain.GetJobReportHandler(mock)
+	handler := domain.GetJobReportHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"release":    "4.18",
@@ -97,7 +97,7 @@ func TestGetJobReport_ResponseTrimming(t *testing.T) {
 		"/api/jobs": []byte(`[{"name":"job1","id":99,"brief_name":"job1","current_pass_percentage":95.5,"current_runs":100,"current_fails":5,"previous_pass_percentage":90.0,"previous_runs":80,"net_improvement":5.5,"open_bugs":1,"current_projected_pass_percentage":96.0,"test_grid_url":"http://example.com"}]`),
 	})
 
-	handler := domain.GetJobReportHandler(mock)
+	handler := domain.GetJobReportHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{"release": "4.18"}
 	result, err := handler(context.Background(), req)
@@ -121,7 +121,7 @@ func TestGetJobRuns(t *testing.T) {
 		"/api/jobs/runs": []byte(`{"rows":[{"prow_id":1,"job":"test-job","url":"https://prow.ci/1","test_failures":0,"succeeded":true,"timestamp":1700000000,"overall_result":"S"}],"total_rows":1,"page_size":10,"page":1}`),
 	})
 
-	handler := domain.GetJobRunsHandler(mock)
+	handler := domain.GetJobRunsHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"release":  "4.18",
@@ -145,7 +145,7 @@ func TestGetJobRuns_PageParam(t *testing.T) {
 		},
 	}
 
-	handler := domain.GetJobRunsHandler(mock)
+	handler := domain.GetJobRunsHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"release":  "4.18",
@@ -166,7 +166,7 @@ func TestGetJobRuns_ResponseTrimming(t *testing.T) {
 		"/api/jobs/runs": []byte(`{"rows":[{"id":1,"prow_id":1,"brief_name":"job-1","job":"periodic-ci-job-1","url":"https://prow.ci/1","test_failures":3,"test_flakes":1,"failed":false,"infrastructure_failure":false,"known_failure":false,"succeeded":true,"timestamp":1700000000,"overall_result":"S","cluster":"build05","pull_request_org":"","pull_request_repo":""}],"page_size":10,"page":1,"total_rows":1}`),
 	})
 
-	handler := domain.GetJobRunsHandler(mock)
+	handler := domain.GetJobRunsHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"release":  "4.18",
@@ -202,7 +202,7 @@ func TestGetJobRunSummary(t *testing.T) {
 		"/api/job/run/summary": []byte(`{"id":12345,"name":"e2e-aws","succeeded":true}`),
 	})
 
-	handler := domain.GetJobRunSummaryHandler(mock)
+	handler := domain.GetJobRunSummaryHandler(mock, nil)
 	req := mcp.CallToolRequest{}
 	req.Params.Arguments = map[string]any{
 		"prow_job_run_id": "12345",

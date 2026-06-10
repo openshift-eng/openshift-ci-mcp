@@ -28,7 +28,7 @@ func RegisterPullRequestTools(s *server.MCPServer, sippy client.Sippy, cache *cl
 		mcp.WithNumber("limit", mcp.Description("Max results per page (default 25)"), mcp.DefaultNumber(25)),
 		mcp.WithNumber("page", mcp.Description("Page number (default 1)"), mcp.DefaultNumber(1)),
 		mcp.WithString("fields", mcp.Description("Comma-separated list of field names to include in response (default: all)")),
-	), GetPullRequestImpactHandler(sippy))
+	), GetPullRequestImpactHandler(sippy, cache))
 
 	s.AddTool(mcp.NewTool("get_release_prs",
 		mcp.WithDescription("Use to get a list of pull requests for a specific release or presubmits"),
@@ -45,7 +45,7 @@ func RegisterPullRequestTools(s *server.MCPServer, sippy client.Sippy, cache *cl
 	), GetPullRequestsHandler(sippy, cache))
 }
 
-func GetPullRequestImpactHandler(sippy client.Sippy) server.ToolHandlerFunc {
+func GetPullRequestImpactHandler(sippy client.Sippy, cache *client.ResponseCache) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		org, err := req.RequireString("org")
 		if err != nil {
@@ -71,12 +71,19 @@ func GetPullRequestImpactHandler(sippy client.Sippy) server.ToolHandlerFunc {
 			"perPage":    fmt.Sprintf("%d", req.GetInt("limit", 25)),
 			"page":       fmt.Sprintf("%d", req.GetInt("page", 1)),
 		}
-		data, err := sippy.Get(ctx, "/api/pull_requests/test_results", params)
+		cacheKey := fmt.Sprintf("pr_impact:%s:%s:%s:%s:%s:%s:%s", org, repo, prNumber, startDate, endDate, params["perPage"], params["page"])
+		data, err := cache.GetOrFetch(cacheKey, func() ([]byte, error) {
+			raw, err := sippy.Get(ctx, "/api/pull_requests/test_results", params)
+			if err != nil {
+				return nil, err
+			}
+			if trimmed, err := client.ReshapeJSON[[]client.PRTestResult](raw); err == nil {
+				return trimmed, nil
+			}
+			return raw, nil
+		})
 		if err != nil {
 			return tools.ToolError(err)
-		}
-		if trimmed, err := client.ReshapeJSON[[]client.PRTestResult](data); err == nil {
-			data = trimmed
 		}
 		if filtered, err := client.FilterFields(data, req.GetString("fields", "")); err == nil {
 			data = filtered
